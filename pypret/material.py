@@ -1,14 +1,12 @@
-""" This module implements a simple material model.
+""" This module provides classes to calculate the refractive index
+based on Sellmeier equations.
 
+This is required to correctly model d-scan measurements.
 
-Disclaimer
-----------
-
-THIS CODE IS FOR EDUCATIONAL PURPOSES ONLY! The code in this package was not
-optimized for accuracy or performance. Rather it aims to provide a simple
-implementation of the basic algorithms.
-
-Author: Nils Geib, nils.geib@uni-jena.de
+Currently only very few materials are implemented. But more should be easy
+to add. If the refractive index is described by formula 1 or 2 from
+refractiveindex.info you can simply instantiate `SellmeierF1` or `SellmeierF2`.
+If not, inherit from BaseMaterial and implement the `self._func` method.
 """
 import numpy as np
 from .frequencies import convert
@@ -82,13 +80,11 @@ class SellmeierF1(BaseMaterial):
     ''' Defines a dispersive material via a specific Sellmeier equation.
 
         This subclass supports materials with a Sellmeier equation of the
-        form:
+        form::
 
-        n^2(l) - 1 = c0 + c2 * l^2 / (l2 - c3^2) + ...
+            n^2(l) - 1 = c1 + c2 * l^2 / (l2 - c3^2) + ...
 
-        This is formula 1 from refractiveindex.info [1].
-        
-        [1] http://refractiveindex.info/database/doc/Dispersion%20formulas.pdf
+        This is formula 1 from refractiveindex.info [DispersionFormulas]_.
     '''
     def _func(self, x):
         c = self._coefficients
@@ -103,13 +99,11 @@ class SellmeierF2(BaseMaterial):
     ''' Defines a dispersive material via a specific Sellmeier equation.
 
         This subclass supports materials with a Sellmeier equation of the
-        form:
+        form::
 
-        n^2(l) - 1 = c0 + c2 * l^2 / (l2 - c3) + ...
+            n^2(l) - 1 = c1 + c2 * l^2 / (l2 - c3) + ...
 
-        This is formula 2 from refractiveindex.info [1].
-        
-        [1] http://refractiveindex.info/database/doc/Dispersion%20formulas.pdf
+        This is formula 2 from refractiveindex.info [DispersionFormulas]_.
     '''
     def _func(self, x):
         c = self._coefficients
@@ -126,9 +120,18 @@ FS = SellmeierF1(coefficients=[0.0000000, 0.6961663,
                  freq_range=[0.21e-6, 6.7e-6],
                  name="FS",
                  long_name="Fused silica (fused quartz)")
+"""Material instance describing fused silica (fused quartz).
+
+The data was taken from refractiveindex.info
+"""
+
 BK7 = SellmeierF2(coefficients=[0.00000000000, 1.039612120,
                                 0.00600069867, 0.231792344,
                                 0.02001791440, 1.010469450,
                                 103.560653],
                   freq_range=[0.3e-6, 2.5e-6],
                   name="BK7", long_name="N-BK7 (SCHOTT)")
+"""Material instance describing N-BK7 (SCHOTT).
+
+The data was taken from refractiveindex.info
+"""

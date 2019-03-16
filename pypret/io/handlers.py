@@ -6,8 +6,6 @@ work also work for subclasses of that type.
 The instance handlers are processed in the order they are stored. This means
 that if an object is an instance of several handled classes it will not raise
 an error and will be handled by the first matching handler in the OrderedDict.
-
-Author: Nils Geib, nils.geib@uni-jena.de
 """
 import numpy as np
 import types
@@ -31,8 +29,8 @@ def classname(val):
     separated by a dot. If an instance is passed to this function, the name
     of its class is returned.
 
-    Parameter
-    ---------
+    Parameters
+    ----------
     val : instance or class
         The instance or a class of which the qualified class name is returned.
 
@@ -78,10 +76,10 @@ def save_to_level(val, level, options, name=None):
 
 
 def load_from_level(level, obj=None):
-    """ Loads an object from a HDF5 group or dataset.
+    """ Loads an object from an HDF5 group or dataset.
 
-    Parameter
-    ---------
+    Parameters
+    ----------
     level : h5py.Dataset or h5py.Group
         An HDF5 node that stores an object in a valid format.
     obj : instance or None
@@ -186,6 +184,8 @@ class Handler:
 
 
 class TypeHandler(Handler, metaclass=TypeRegister):
+    """ Handles data of a specific type or class.
+    """
     types = []
     casting = {}
 
@@ -202,6 +202,12 @@ class TypeHandler(Handler, metaclass=TypeRegister):
 
 
 class InstanceHandler(Handler, metaclass=InstanceRegister):
+    """ Handles all instances of a specific (parent) class.
+
+    If an instance is subclass to several classes for which a handler exists,
+    no error will be raised (in contrast to TypeHandler). Rather, the first
+    match in the global instance_saver_handlers OrderedDict will be used.
+    """
     instances = []
     casting = {}
 
@@ -249,7 +255,7 @@ class ScalarHandler(TypeHandler):
 class IntHandler(TypeHandler):
     """ Special int handler to deal with Python's variable size ints.
 
-    They are stored as byte arrays. Probably not the most efficient...
+    They are stored as byte arrays. Probably not the most efficient solution...
     """
     types = [int]
 

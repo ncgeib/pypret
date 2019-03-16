@@ -1,13 +1,4 @@
 """ This module implements a simple mesh-data handler.
-
-Disclaimer
-----------
-
-THIS CODE IS FOR EDUCATIONAL PURPOSES ONLY! The code in this package was not
-optimized for accuracy or performance. Rather it aims to provide a simple
-implementation of the basic algorithms.
-
-Author: Nils Geib, nils.geib@uni-jena.de
 """
 import numpy as np
 from scipy.interpolate import RegularGridInterpolator
@@ -19,10 +10,10 @@ class MeshData(io.IO):
     _io_store = ["data", "axes", "labels", "units"]
 
     def __init__(self, data,  *axes, labels=None, units=None):
-        ''' Creates a MeshData instance.
+        """ Creates a MeshData instance.
 
-        Parameter
-        ---------
+        Parameters
+        ----------
         data : ndarray
             A at least two-dimensional array containing the data.
         *axes : ndarray
@@ -30,11 +21,11 @@ class MeshData(io.IO):
             in indexing order.
         labels : list of str, optional
             A list of strings labeling the axes. The last element labels the
-            data itself, e.g. ``labels'' must have one more element than the
+            data itself, e.g. ``labels`` must have one more element than the
             number of axes.
         units : list of str, optional
             A list of unit strings.
-        '''
+        """
         self.data = data.copy()
         self.axes = [np.array(a).copy() for a in axes]
         if self.ndim != len(axes):
@@ -50,23 +41,29 @@ class MeshData(io.IO):
 
     @property
     def shape(self):
+        """ Returns the shape of the data as a tuple.
+        """
         return self.data.shape
 
     @property
     def ndim(self):
+        """ Returns the dimension of the data as integer.
+        """
         return self.data.ndim
 
     def copy(self):
-        ''' Creates a copy of the MeshData instance. '''
+        """ Creates a copy of the MeshData instance. """
         return MeshData(self.data, *self.axes, labels=self.labels,
                         units=self.units)
 
     def marginals(self, axis=None):
-        ''' Calculates the marginals of the data.
-        '''
+        """ Calculates the marginals of the data.
+        """
         return lib.marginals(self.data)
 
     def normalize(self):
+        """ Normalizes the maximum of the data to 1.
+        """
         self.data /= self.data.max()
 
     def autolimit(self, *axes, threshold=1e-2, padding=0.25):
@@ -84,6 +81,18 @@ class MeshData(io.IO):
         self.limit(*limits, axes=axes)
 
     def limit(self, *limits, axes=None):
+        """ Limits the data range of this instance.
+
+        Parameters
+        ----------
+        *limits : tuples
+            The data limits in the axes as tuples. Has to match the dimension
+            of the data or the number of axes specified in the `axes`
+            parameter.
+        axes : tuple or None
+            The axes in which the limit is applied. Default is `None` in which
+            case all axes are selected.
+        """
         if axes is None:
             # default: operate on all axes
             axes = list(range(self.ndim))
@@ -111,6 +120,9 @@ class MeshData(io.IO):
         self.data = self.data[(*slices,)]
 
     def interpolate(self, axis1=None, axis2=None, degree=2, sorted=False):
+        """ Interpolates the data on a new two-dimensional, equidistantly
+        spaced grid.
+        """
         axes = [axis1, axis2]
         for i in range(self.ndim):
             if axes[i] is None:
@@ -131,6 +143,8 @@ class MeshData(io.IO):
         self.axes = axes
 
     def flip(self, *axes):
+        """ Flips the data on the specified axes.
+        """
         if len(axes) == 0:
             return
         axes = lib.as_list(axes)

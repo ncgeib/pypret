@@ -56,13 +56,13 @@ performing the DFT. And those phase factors mainly depend on the starting
 points of the grids: w_0 and t_0. Note also that due to our sign convention
 for the FT we have to use ifft for the forward transform and vice versa.
 
-Trivially, we can see that for w_0 = t_0 = 0 the phase factors vanish and
+Trivially, we can see that for ``w_0 = t_0 = 0`` the phase factors vanish and
 the FT is approximated well by just the DFT. However, in optics these
 grids are unusual.
-For w_0 = l Δw and t_0 = m Δt, where l, m are integers (i.e., w_0 and t_0
-are multiples of the grid spacing), the phase factors can be incorperated
-into the DFT. Then the phase factors can be replaced by circular shifts of the
-input and output arrays.
+For ``w_0 = l Δw`` and ``t_0 = m Δt``, where l, m are integers (i.e., w_0 and
+t_0 are multiples of the grid spacing), the phase factors can be
+incorperated into the DFT. Then the phase factors can be replaced by circular
+shifts of the input and output arrays.
 
 This is exactly what the functions (i)fftshift are doing for one specific
 choice of l and m, namely for::
@@ -81,7 +81,9 @@ but will produce wrong results for odd N.
 
 Additionally you have to watch out not to violate the assumptions for the
 grid positions. Using a symmetrical grid, e.g.,::
+
     x = linspace(-1, 1, 128)
+
 will also produce wrong results, as the elements of x are not multiples of the
 grid spacing (but shifted by half a grid point).
 
@@ -94,27 +96,9 @@ notion of having to re-order the output of the DFT everywhere.
 Long story short: here we are going to stick with multiplying the correct
 phase factors. The code tries to follow the notation used above.
 
-Literature
-----------
-
-.. [1] W. L. Briggs and v. E. Henson, "The DFT: an owners' manual for the
-   discrete Fourier transform," (SIAM, 1995).
-
-.. [2] E. W. Hansen, "Fourier transforms: principles and applications," (John
-   Wiley & Sons, 2014).
-
-.. [3] L. N. Trefethen and J. A. C. Weideman, "The exponentially convergent
-   trapezoidal rule," SIAM Review 56, 385-458 (2014).
-
-
-Disclaimer
-----------
-
-THIS CODE IS FOR EDUCATIONAL PURPOSES ONLY! The code in this package was not
-optimized for accuracy or performance. Rather it aims to provide a simple
-implementation of the basic algorithms.
-
-Author: Nils Geib, nils.geib@uni-jena.de
+Good, more comprehensive expositions of the issues above can be found in
+[Briggs1995]_ and [Hansen2014]_. For the reason why it the first-order
+approximation to the Riemann integral suffices, see [Trefethen2014]_.
 """
 import numpy as np
 # scipy.fftpack is still faster than numpy.fft (should change in numpy 1.17)
@@ -132,14 +116,33 @@ class FourierTransform(io.IO):
     are calculated can lead to rounding errors. Also one should use a faster
     FFT like FFTW for more performance.
     This simple implementation is mainly for educational use.
+
+    Attributes
+    ----------
+    N : int
+        Size of the grid
+    dt : float
+        Temporal spacing
+    dw : float
+        Frequency spacing (angular frequency)
+    t0 : float
+        The first element of the temporal grid
+    w0 : float
+        The first element of the frequency grid
+    t : 1d-array
+        The temporal grid
+    w : 1d-array
+        The frequency grid (angular frequency)
+
+
     """
     _io_store = ['N', 'dt', 'dw', 't0', 'w0']
 
     def __init__(self, N, dt=None, dw=None, t0=None, w0=None):
         """ Creates conjugate grids and calculates the Fourier transform.
 
-        Parameter
-        ---------
+        Parameters
+        ----------
         N : int
             Array size
         dt : float, optional
@@ -207,11 +210,12 @@ class Gaussian:
 
         The Gaussian is calculated by::
 
-            f(t) = exp(-0.5 (t - t0)**2 / dt**2) * exp(1.0j * phase)
+            f(t) = exp(-0.5 (t - t0)^2 / dt^2) * exp(1.0j * phase)
 
-        Its Fourier transform is
+        Its Fourier transform is::
 
-            F(w) = 1/2pi exp(-0.5 ())
+            F(w) = dt/sqrt(2pi) exp(-0.5 * (w + phase)^2 * dt^2 +
+                                     1j * t0 * w)
 
         Parameters
         ----------

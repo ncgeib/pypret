@@ -1,19 +1,22 @@
 """ This module implements several helper routines for plotting.
-
-
-Disclaimer
-----------
-
-THIS CODE IS FOR EDUCATIONAL PURPOSES ONLY! The code in this package was not
-optimized for accuracy or performance. Rather it aims to provide a simple
-implementation of the basic algorithms.
-
-Author: Nils Geib, nils.geib@uni-jena.de
 """
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.ticker import EngFormatter
 from . import lib
+
+
+def plot_meshdata(ax, md, cmap="nipy_spectral"):
+    x, y = lib.edges(md.axes[1]), lib.edges(md.axes[0])
+    im = ax.pcolormesh(x, y, md.data, cmap=cmap)
+    ax.set_xlabel(md.labels[0])
+    ax.set_ylabel(md.labels[1])
+
+    fx = EngFormatter(unit=md.units[0])
+    ax.xaxis.set_major_formatter(fx)
+    fy = EngFormatter(unit=md.units[1])
+    ax.yaxis.set_major_formatter(fy)
+    return im
 
 
 class MeshDataPlot:
@@ -25,18 +28,10 @@ class MeshDataPlot:
 
     def plot(self, show=True):
         md = self.md
-        x, y = lib.edges(md.axes[1]), lib.edges(md.axes[0])
 
-        fig, ax = plt.subplots()        
-        im = ax.pcolormesh(x, y, md.data, cmap='nipy_spectral')
+        fig, ax = plt.subplots()
+        im = plot_meshdata(ax, md, "nipy_spectral")
         fig.colorbar(im, ax=ax)
-        ax.set_xlabel(md.labels[0])
-        ax.set_ylabel(md.labels[1])
-
-        fx = EngFormatter(unit=md.units[0])
-        ax.xaxis.set_major_formatter(fx)
-        fy = EngFormatter(unit=md.units[1])
-        ax.yaxis.set_major_formatter(fy)
 
         self.fig, self.ax = fig, ax
         self.im = im
@@ -44,9 +39,12 @@ class MeshDataPlot:
             fig.tight_layout()
             plt.show()
 
+    def show(self):
+        plt.show()
+
 
 def plot_complex(x, y, ax, ax2, yaxis='intensity', limit=False,
-                 phase_blanking=False, phase_blanking_threshold=1e-3, 
+                 phase_blanking=False, phase_blanking_threshold=1e-3,
                  amplitude_line="r-", phase_line="b-"):
     if yaxis == "intensity":
         amp = lib.abs2(y)
@@ -118,7 +116,7 @@ class PulsePlot:
         self.ax1, self.ax2 = ax1, ax2
         self.ax12, self.ax22 = ax12, ax22
         self.li11, self.li12, self.li21, self.li22 = li11, li12, li21, li22
-        
+
         if show:
             fig.tight_layout()
             plt.show()

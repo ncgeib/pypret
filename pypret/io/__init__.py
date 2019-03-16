@@ -8,8 +8,8 @@ While the files itself are plain HDF5 and can be read in any language
 supporting HDF5, the format is not compatible to Matlab's own file format.
 If you are searching for such a solution look at the hdf5storage package.
 
-Interface
----------
+Usage
+-----
 The module exports a ``save()`` function that stores arbitrary structures
 of Python and NumPy data types. For example
 
@@ -95,7 +95,7 @@ HDF5 groups, numpy arrays use h5py's type translation.
 Iterables are converted to groups by introducing artificial keys of the
 type ``idx_%d``. This is rather inefficient which explains why the
 module should not be used to store large numerical arrays as a Python list.
-To store the type information it uses a HDF5 attribute ``__class__``.
+To store the type information it uses an HDF5 attribute ``__class__``.
 Furthermore, for scalars the attribute ``__dtype__`` and for strings the
 attribute ``__encoding__`` are additionally used.
 

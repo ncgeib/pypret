@@ -1,13 +1,4 @@
 """ Provides a function to generate random pulses with specified TBP.
-
-Disclaimer
-----------
-
-THIS CODE IS FOR EDUCATIONAL PURPOSES ONLY! The code in this package was not
-optimized for accuracy or performance. Rather it aims to provide a simple
-implementation of the basic algorithms.
-
-Author: Nils Geib, nils.geib@uni-jena.de
 """
 import numpy as np
 import scipy.optimize as opt

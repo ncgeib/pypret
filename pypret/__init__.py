@@ -6,8 +6,9 @@ THIS CODE IS FOR EDUCATIONAL PURPOSES ONLY! The code in this package was not
 optimized for accuracy or performance. Rather it aims to provide a simple
 implementation of the basic algorithms.
 
-Author: Nils Geib, nils.geib@uni-jena.de
+Author: Nils C. Geib, nils.geib@uni-jena.de
 """
+__version__ = "0.1alpha"
 from .fourier import FourierTransform
 from .pulse import Pulse
 from .random_pulse import random_pulse, random_gaussian

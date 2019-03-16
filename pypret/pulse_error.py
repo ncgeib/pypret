@@ -1,20 +1,4 @@
 """ This module implements testing procedures for retrieval algorithms.
-
-The code tries to follow the notation used in the supplement to our paper.
-
-One step in optimal_rms_error (the determination of the initial bracket)
-could probably be more efficient, see Dorrer and Walmsley, 2002. We use the
-less elegant but maybe more straightforward way of simply sampling the
-range for a bracket that encloses a minimum.
-
-Disclaimer
-----------
-
-THIS CODE IS FOR EDUCATIONAL PURPOSES ONLY! The code in this package was not
-optimized for accuracy or performance. Rather it aims to provide a simple
-implementation of the basic algorithms.
-
-Author: Nils Geib, nils.geib@uni-jena.de
 """
 import numpy as np
 from scipy import optimize
@@ -26,8 +10,13 @@ def pulse_error(E, E0, ft, dot_ambiguity=False,
     ''' Calculates the normalized rms error between two pulse spectra while
     taking into account the retrieval ambiguities.
 
-    Parameter
-    ---------
+    One step in `optimal_rms_error` (the determination of the initial bracket)
+    could probably be more efficient, see [Dorrer2002]_. We use the
+    less elegant but maybe more straightforward way of simply sampling the
+    range for a bracket that encloses a minimum.
+
+    Parameters
+    ----------
     E, E0: 1d-array
         Complex-valued arrays that contain the spectra of the pulses.
         ``E`` will be matched against ``E0``.
@@ -61,8 +50,10 @@ def pulse_error(E, E0, ft, dot_ambiguity=False,
 
 
 def best_scale(E, E0):
-    """ Scales rho so that
+    """ Scales rho so that::
+        
         sum (rho * |E| - |E0|)^2
+        
     is minimal.
     """
     Eabs, E0abs = np.abs(E), np.abs(E0)
@@ -70,7 +61,8 @@ def best_scale(E, E0):
 
 
 def best_constant_phase(E, E0):
-    """ Finds c with |c| = 1 so that sum(abs2(c * y1 - y2)) is minimal.
+    """ Finds ``c`` with ``|c| = 1`` so that ``sum(abs2(c * y1 - y2))`` is
+    minimal.
 
     Uses an analytic solution.
     """
@@ -87,8 +79,10 @@ def optimal_rms_error(w, E, E0):
     """ Calculates the RMS error of two arrays, ignoring scaling, constant
     and linear phase of one of them.
 
-    Formally it calculates the minimal error
+    Formally it calculates the minimal error::
+    
         R = sqrt(|rho * exp(i*(x*a + b)) * y1 - y2|^2 / |y2|^2)
+    
     with respect to rho, a and b. If additionally ``conjugation = True`` then
     the error for conjugate(y1) is calculated and the best transformation of y1
     is also returned.

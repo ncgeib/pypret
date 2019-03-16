@@ -1,14 +1,4 @@
 """ This module implements testing procedures for retrieval algorithms.
-
-
-Disclaimer
-----------
-
-THIS CODE IS FOR EDUCATIONAL PURPOSES ONLY! The code in this package was not
-optimized for accuracy or performance. Rather it aims to provide a simple
-implementation of the basic algorithms.
-
-Author: Nils Geib, nils.geib@uni-jena.de
 """
 import path_helper
 from types import SimpleNamespace
@@ -22,12 +12,13 @@ from pypret.graphics import plot_complex
 
 
 def benchmark_retrieval(pulse, scheme, algorithm, additive_noise=0.0,
-                        repeat=10, max_iterations=300, verbose=False):
+                        repeat=10, maxiter=300, verbose=False,
+                        initial_guess="random_gaussian", **kwargs):
     """ Benchmarks a pulse retrieval algorithm. Uses the parameters from our
     paper.
 
-    If you want to benchmark different pulses use the procedure below as a
-    starting point.
+    If you want to benchmark other pulses/configurations you can use the
+    procedure below as a starting point.
     """
     # Create a simulation grid
     ft = FourierTransform(256, dt=5.0e-15)
@@ -75,13 +66,22 @@ def benchmark_retrieval(pulse, scheme, algorithm, additive_noise=0.0,
     std = measurement.data.max() * additive_noise
     measurement.data += std * np.random.normal(size=measurement.data.shape)
 
-    ret = Retriever(pnps, "copra", verbose=verbose, logging=True,
-                    max_iterations=max_iterations)
+    ret = Retriever(pnps, algorithm, verbose=verbose, logging=True,
+                    maxiter=maxiter, **kwargs)
 
     res.retrievals = []
     for i in range(repeat):
-        # create random Gaussian pulse
-        random_gaussian(pulse, 50e-15)
+        if initial_guess == "random_gaussian":
+            # create random Gaussian pulse
+            random_gaussian(pulse, 50e-15)
+        elif initial_guess == "random":
+            pulse.spectrum = (np.random.uniform(size=ft.N) *
+                              np.exp(2.0j * np.pi *
+                                     np.random.uniform(size=ft.N)))
+        elif initial_guess == "original":
+            pulse.spectrum = res.original_spectrum
+        else:
+            raise ValueError("Initial guess mode '%s' not supported." % initial_guess)
         ret.retrieve(measurement, pulse.spectrum)
         res.retrievals.append(ret.result(res.original_spectrum))
 

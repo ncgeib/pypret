@@ -2,28 +2,21 @@
 
 The supported units and their shorthands are:
 
-    wl: wavelength in meter
-    om: angular frequency in rad/s
-    f: frequency in 1/s
-    k: angular wavenumber in rad/m
+- wl : wavelength in meter
+- om: angular frequency in rad/s
+- f: frequency in 1/s
+- k: angular wavenumber in rad/m
 
 The conversion functions have the form `shorthand2shorthand` which is not
 pythonic but very short. A more pythonic conversion can be achieved by using
 the `convert` function
+
 >>> convert(x, 'wl', 'om')
+
 The shorthands will be used throughout the package to identify frequency units.
 
 The functions in this module should be used wherever a frequency convention
 is necessary to avoid mistakes and make the code more expressive.
-
-Disclaimer
-----------
-
-THIS CODE IS FOR EDUCATIONAL PURPOSES ONLY! The code in this package was not
-optimized for accuracy or performance. Rather it aims to provide a simple
-implementation of the basic algorithms.
-
-Author: Nils Geib, nils.geib@uni-jena.de
 """
 from copy import copy
 from .lib import sol, twopi

@@ -21,8 +21,8 @@ VERSION = 1.0
 def save(val, path, archive=False, options=options.DEFAULT_OPTIONS):
     ''' Saves an object in an HDF5 file.
 
-    Parameter
-    ---------
+    Parameters
+    ----------
     val : object
         Any Python value that is made up of storeable instances. Those are
         built-in types, numpy datatypes and types with custom handlers.
@@ -49,9 +49,6 @@ def _savez(val, path, options=options.DEFAULT_OPTIONS):
     # But due to h5py's limitations I did not find a better way.
     tmppath = tempfile.mktemp()
     _save(val, tmppath, options)
-    # Zipping increases the file size of small files
-#    with zipfile.ZipFile(path, 'w') as zf:
-#        zf.write(tmppath)
     with open(tmppath, 'rb') as f:
         with lzma.LZMAFile(path, 'w') as zf:
             zf.write(f.read())
@@ -61,18 +58,13 @@ def _savez(val, path, options=options.DEFAULT_OPTIONS):
 def _save(val, path, options=options.DEFAULT_OPTIONS):
     ''' Saves an object in an HDF5 file.
 
-    Parameter
-    ---------
+    Parameters
+    ----------
     val : object
         Any Python value that is made up of storeable instances. Those are
         built-in types, numpy datatypes and types with custom handlers.
     path : str or Path instance
         Save path of the HDF5 file. Existing files will be overwritten!
-    name : str
-        Values that are stored in datasets (e.g. NumPy arrays) require a name,
-        whereas group datatypes (e.g. dicts) can be stored in the nameless
-        root group. If you try to store an array directly you have to specify
-        its name.
     options : HDF5Options instance
         The HDF5 options that will be used for saving. Defaults to the
         global options instance `DEFAULT_OPTIONS`.
@@ -120,13 +112,13 @@ def _loadz(path, obj=None):
 def load(path, obj=None, archive=None):
     ''' Reads a possibly compressed HDF5 file.
 
-    If archive is `None` it is retrieved with python-magic.
+    If archive is ``None`` it is retrieved with python-magic.
     '''
     if archive is None:
         if magic is None:
             archive = False  # simply assume non-compressed file - may fail
         else:
-            mime = magic.from_file(path)
+            mime = magic.from_file(str(path))
             archive = (mime == 'XZ compressed data')
     if archive:
         return _loadz(path, obj=obj)
@@ -163,7 +155,21 @@ class MetaIO(type):
 
 
 class IO(metaclass=MetaIO):
-    """ Provides saving to and loading from a HDF5 file or level.
+    """ Provides an interface for saving to and loading from a HDF5 file.
+
+    This class can be mixed-in to easily add persistence to your existing
+    Python classes. By default all attributes of an object will be stored.
+    Upon loading these attributes will be loaded and `__init__` will *not*
+    be called.
+
+    Often a better way is to store only the necessary attributes by
+    giving a list of attribute names in the private attribute `_io_store`.
+    Then you have to overwrite the `_post_init()` method that initializes
+    your object from these stored attributes. It is usually also be called at
+    the end of the original `__init__` and should not mean extra effort.
+
+    Lastly, you can simply overwrite `load_from_dict` to implement a
+    completely custom loader.
     """
     # A list of attribute names that are not stored
     _io_store_not = []

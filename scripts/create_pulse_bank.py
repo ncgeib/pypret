@@ -1,3 +1,7 @@
+""" This script generates 100 pulses with time-bandwidth product 2 and
+stores them in an HDF5 file. Those pulses are used by other scripts
+in this folder.
+"""
 import path_helper
 import pypret
 

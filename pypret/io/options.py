@@ -1,5 +1,4 @@
-"""
-A module that provides mixin classes for adding persistence via HDF5 files.
+""" Sets the default options for HDF5 data.
 
 Author: Nils Geib, nils.geib@uni-jena.de
 """
@@ -8,6 +7,13 @@ from types import SimpleNamespace as SN
 
 
 class HDF5Options:
+    """ A class that handles the correct HDF5 options for different data sets.
+
+    The reason is simply that native HDF5 compression will actually increase
+    the file size for small arrays (< 300 bytes). This class selects different
+    HDF5 options based on the dataset over the method ``__call__``. It can
+    be subclassed to support more sophisticated selection strategies.
+    """
     def __init__(self):
         self.compression_threshold = 300  # bytes
         self.libver = 'latest'

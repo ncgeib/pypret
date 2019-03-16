@@ -1,3 +1,6 @@
+# repository specific stuff
+scripts/results/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -30,6 +33,9 @@ MANIFEST
 #  before PyInstaller builds the exe, so as to inject date/other infos into it.
 *.manifest
 *.spec
+
+# pytest
+.pytest_cache
 
 # Installer logs
 pip-log.txt
