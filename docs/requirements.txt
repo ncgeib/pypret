@@ -1,3 +1,4 @@
 # requirements file for readthedocs virtualenv
 numpy
 scipy
+h5py
