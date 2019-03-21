@@ -39,7 +39,7 @@ original_spectrum = pulse.spectrum
 pypret.MeshDataPlot(pnps.trace)
 
 # and do the retrieval
-ret = pypret.Retriever(pnps, "copra", verbose=True, max_iterations=300)
+ret = pypret.Retriever(pnps, "copra", verbose=True, maxiter=300)
 # start with a Gaussian spectrum with random phase as initial guess
 pypret.random_gaussian(pulse, 50e-15, phase_max=0.0)
 # now retrieve from the synthetic trace simulated above
@@ -68,4 +68,4 @@ For any questions or comments, you can contact me via email: nils.geib@uni-jena.
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
