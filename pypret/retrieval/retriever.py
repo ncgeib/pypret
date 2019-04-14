@@ -62,12 +62,13 @@ class BaseRetriever(io.IO, metaclass=MetaIORetriever):
         rs = self._retrieval_state = SimpleNamespace()
         rs.running = False
         if (self.supported_schemes is not None and
-            pnps.scheme not in self.supported_schemes):
+                pnps.scheme not in self.supported_schemes):
             raise ValueError("Retriever '%s' does not support scheme '%s'. "
                              "It only supports %s." %
-                             (self.method, pnps.scheme, self.supported_schemes))
+                             (self.method, pnps.scheme, self.supported_schemes)
+                             )
 
-    def retrieve(self, measurement, initial_guess):
+    def retrieve(self, measurement, initial_guess, **kwargs):
         """ Retrieve pulse from ``measurement`` starting at ``initial_guess``.
 
         Parameters
@@ -82,12 +83,15 @@ class BaseRetriever(io.IO, metaclass=MetaIORetriever):
         initial_guess : 1d-array
             The spectrum of the pulse that is used as initial guess in the
             iterative retrieval.
+        kwargs : dict
+            Can override retrieval options specified in :func:`__init__`.
 
         Notes
         -----
         This function provides no interpolation or data processing. You have
         to write a retriever wrapper for that purpose.
         """
+        self.options.__dict__.update(**kwargs)
         if not isinstance(measurement, MeshData):
             raise ValueError("measurement has to be a MeshData instance!")
         self._retrieve_begin(measurement, initial_guess)
@@ -180,8 +184,10 @@ class BaseRetriever(io.IO, metaclass=MetaIORetriever):
         """ Calculates the residual vector from measured to simulated
         intensity.
         """
+        # rename
         rs = self._retrieval_state
         Tmn_meas = self.Tmn_meas
+        # scaling factor
         mu = np.sum(Tmn_meas * Tmn) / np.sum(Tmn * Tmn)
         # store intermediate results in current retrieval state
         if store:
@@ -223,7 +229,7 @@ class BaseRetriever(io.IO, metaclass=MetaIORetriever):
         # the pulse spectra
         # 1 - the retrieved pulse
         res.pulse_retrieved = self._result.spectrum
-        # 2 - the original test pulse
+        # 2 - the original test pulse, optional
         res.pulse_original = pulse_original
         # 3 - the initial guess
         res.pulse_initial = self.initial_guess
@@ -234,6 +240,7 @@ class BaseRetriever(io.IO, metaclass=MetaIORetriever):
         # 2 - the trace error and the trace calculated from the retrieved pulse
         res.trace_error = self.trace_error(res.pulse_retrieved)
         res.trace_retrieved = rs.mu * rs.Tmn
+        res.response_function = rs.mu
 
         # this is set if the original spectrum is provided
         if res.pulse_original is not None:
@@ -261,7 +268,7 @@ class BaseRetriever(io.IO, metaclass=MetaIORetriever):
 
 
 def Retriever(pnps: BasePNPS, method: str = "copra", maxiter=300, maxfev=None,
-              **kwargs) -> BaseRetriever:
+              logging=False, verbose=False, **kwargs) -> BaseRetriever:
     """ Creates a retriever instance.
 
     Parameters
@@ -287,13 +294,20 @@ def Retriever(pnps: BasePNPS, method: str = "copra", maxiter=300, maxfev=None,
         The maximum number of function evaluations. If given, the algorithms
         stop before this number is reached. Not all algorithms support this
         feature. Default is ``None``, in which case it is ignored.
+    logging : bool, optional
+        Stores trace errors and pulses over the iterations if supported
+        by the retriever class. Default is `False`.
+    verbose : bool, optional
+        Prints out trace errors during the iteration if supported by the
+        retriever class. Default is `False`.
     """
     method = method.lower()
     try:
         cls = _RETRIEVER_CLASSES[method]
     except KeyError:
         raise ValueError("Retriever '%s' is unknown!" % (method))
-    return cls(pnps, maxiter=maxiter, maxfev=maxfev, **kwargs)
+    return cls(pnps, maxiter=maxiter, maxfev=maxfev,
+               logging=logging, verbose=verbose, **kwargs)
 
 
 

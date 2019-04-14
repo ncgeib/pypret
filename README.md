@@ -1,6 +1,6 @@
 # Python for Pulse Retrieval
 
-This project aims to provide numerical algorithms for ultrashort laser pulse measurement methods such as frequency-resolved optical gating (FROG), dispersion scan (d-scan), or time-domain ptychography (TDP) and more. Specifically, it provides a reference implementation of the algorithms presented in our paper "Common pulse retrieval algorithm: a fast and universal method to retrieve ultrashort pulses". The paper is currently available as a [pre-print](https://arxiv.org/abs/1810.04780).
+This project aims to provide numerical algorithms for ultrashort laser pulse measurement methods such as frequency-resolved optical gating (FROG), dispersion scan (d-scan), or time-domain ptychography (TDP) and more. Specifically, it provides a reference implementation of the algorithms presented in our paper ["Common pulse retrieval algorithm: a fast and universal method to retrieve ultrashort pulses"](https://www.osapublishing.org/optica/abstract.cfm?uri=optica-6-4-495).
 
 ![Example output](scripts/result.png?raw=true "Result")
 
@@ -62,7 +62,7 @@ More elaborate examples of how to use this package can be found in the scripts d
 
 ## Author
 
-This project was developed by Nils C. Geib at the [Institute of Applied Physics](https://www.iap.uni-jena.de) of the [University of Jena](https://www.uni-jena.de), Germany.
+This project was developed by Nils C. Geib at the [Institute of Applied Physics](https://www.iap.uni-jena.de/Micro_+structure+Technology/Research+Group%3Cbr%3EPhotonics+in+2D_Materials/Ultrashort+Laser+Pulse+Metrology.html) of the [University of Jena](https://www.uni-jena.de), Germany.
 
 For any questions or comments, you can contact me via email: nils.geib@uni-jena.de
 

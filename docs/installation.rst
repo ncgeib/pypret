@@ -15,5 +15,7 @@ As the package matures I may add an installer.
 Requirements
 ------------
 
-It requires Python >=3.6 and recent versions of NumPy and SciPy. An optional
-dependency for ``pypret.io`` is python-magic to recognize zipped HDF5 files.
+It requires Python >=3.6 and recent versions of NumPy and SciPy. Furthermore,
+it requires ``h5py`` for storage and loading.
+An optional dependency for ``pypret.io`` is python-magic to recognize zipped
+HDF5 files.

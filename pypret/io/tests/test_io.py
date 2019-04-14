@@ -1,4 +1,4 @@
-""" This module tests the Fourier implementation.
+""" This module tests the io subpackage implementation.
 
 Author: Nils Geib, nils.geib@uni-jena.de
 """

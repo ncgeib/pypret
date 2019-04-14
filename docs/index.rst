@@ -32,7 +32,7 @@ of the algorithms discussed within and allow the reproduction of our results.
 It is planned, however, to expand the package to make it a more full-fledged
 solution for pulse retrieval.
 
-.. _`Institute of Applied Physics`: https://www.iap.uni-jena.de
+.. _`Institute of Applied Physics`: https://www.iap.uni-jena.de/Micro_+structure+Technology/Research+Group%3Cbr%3EPhotonics+in+2D_Materials/Ultrashort+Laser+Pulse+Metrology.html
 .. _`Friedrich Schiller University Jena`: https://www.uni-jena.de
 
 

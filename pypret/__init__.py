@@ -9,6 +9,7 @@ implementation of the basic algorithms.
 Author: Nils C. Geib, nils.geib@uni-jena.de
 """
 __version__ = "0.1alpha"
+from .autocorrelation import autocorrelation
 from .fourier import FourierTransform
 from .pulse import Pulse
 from .random_pulse import random_pulse, random_gaussian

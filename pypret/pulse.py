@@ -71,6 +71,12 @@ class Pulse(io.IO):
         self._field[:] = val
         self.update_spectrum()
 
+    def field_at(self, t):
+        """ The complex-valued temporal envelope of the pulse at the
+        times `t`.
+        """
+        return self.ft.backward_at(self._spectrum, t)
+
     @property
     def spectrum(self):
         """ The complex-valued spectral envelope of the pulse.
@@ -84,6 +90,12 @@ class Pulse(io.IO):
     def spectrum(self, val):
         self._spectrum[:] = val
         self.update_field()
+
+    def spectrum_at(self, w):
+        """ The complex-valued spectral envelope of the pulse at the
+        frequencies `w`.
+        """
+        return self.ft.forward_at(self._field, w)
 
     def update_field(self):
         """ Manually updates the field from the (modified) spectrum.

@@ -23,7 +23,7 @@ scheme = ( # can be one of the following
         )
 
 pulses = pypret.load("pulse_bank.hdf5")
-res = benchmark_retrieval(pulses[1], scheme, "bfgs", repeat=1,
+res = benchmark_retrieval(pulses[1], scheme, "copra", repeat=1,
                           verbose=True, maxiter=300,
                           additive_noise=0.0)
 rrp = RetrievalResultPlot(res.retrievals[0])

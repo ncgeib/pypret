@@ -122,6 +122,7 @@ def marginals(data, normalize=False, axes=None):
     """
     if axes is None:
         axes = range(data.ndim)
+    axes = as_list(axes)
     full_axes = list(range(data.ndim))
     m = []
     for i in axes:
@@ -130,7 +131,7 @@ def marginals(data, normalize=False, axes=None):
         m.append(np.sum(data, axis=margin_axes))
     if normalize:
         m = [rescale(mx) for mx in m]
-    return tuple(m)
+    return tuple(m) if len(m) != 1 else m[0]
 
 
 def find(x, condition, n=1):
@@ -143,6 +144,17 @@ def find(x, condition, n=1):
                 return i
             search_n += 1
     return -1
+
+
+def best_scale(E, E0):
+    """ Scales rho so that::
+
+        sum (rho * |E| - |E0|)^2
+
+    is minimal.
+    """
+    Eabs, E0abs = np.abs(E), np.abs(E0)
+    return np.sum(Eabs * E0abs) / np.sum(Eabs * Eabs)
 
 
 def arglimit(y, threshold=1e-3, padding=0.0):
@@ -261,7 +273,8 @@ def retrieval_report(res):
     """
     print("Retrieval report")
     print("trace error".ljust(15) + "R = %.17e".rjust(25) % res.trace_error)
-    print("min. trace error".ljust(15) + "R0 = %.17e".rjust(25) % res.trace_error_optimal)
-    print("".ljust(15) + "R - R0 = %.17e".rjust(25) % (res.trace_error - res.trace_error_optimal))
-    print()
-    print("pulse error".ljust(15) + "ε = %.17e".rjust(25) % res.pulse_error)
+    if hasattr(res, "trace_error_optimal"):
+        print("min. trace error".ljust(15) + "R0 = %.17e".rjust(25) % res.trace_error_optimal)
+        print("".ljust(15) + "R - R0 = %.17e".rjust(25) % (res.trace_error - res.trace_error_optimal))
+        print()
+        print("pulse error".ljust(15) + "ε = %.17e".rjust(25) % res.pulse_error)

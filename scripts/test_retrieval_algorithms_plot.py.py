@@ -1,5 +1,5 @@
 """ This script plots the results obtained by `test_retrieval_algorithms.py`.
-Therefore, this script has to be run first.
+Therefore, that script has to be run first.
 
 It reproduces Fig. 4, 5 and 7 from [Geib2019]_.
 """

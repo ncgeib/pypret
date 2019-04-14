@@ -1,10 +1,9 @@
 References
 ----------
 
-.. [Geib2019] N. C. Geib, M. Zilk, T. Pertsch, F. Eilenberger, "Common pulse
-        retrieval algorithm: a fast and universal method to retrieve ultrashort
-        pulses," accepted in Optica, available as pre-print at
-        https://arxiv.org/abs/1810.04780
+.. [Geib2019] Nils C. Geib, Matthias Zilk, Thomas Pertsch, and Falk
+        Eilenberger, "Common pulse retrieval algorithm: a fast and universal
+        method to retrieve ultrashort pulses," Optica 6, 495-505 (2019)
 .. [Lozovoy2004] V. V. Lozovoy, I. Pastirk and M. Dantus, "Multiphoton intrapulse
         interference. IV. Ultrashort laser pulse spectral phase
         characterization and compensation," Opt. Lett. 29, 775-777
@@ -64,3 +63,5 @@ References
 .. [Escoto2018] E. Escoto, A. Tajalli, T. Nagy and G. Steinmeyer, "Advanced phase
         retrieval for dispersion scan: a comparative study," J. Opt. Soc.
         Am. B 35, 8-19 (OSA, 2018).
+.. [Diels2006] J.-C. Diels and W. Rudolph, "Ultrashort laser pulse phenomena,"
+    2nd ed. (Academic press, 2006)

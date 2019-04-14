@@ -63,7 +63,7 @@ class LMRetriever(NLORetriever):
     """ Implements pulse retrieval based on the Levenberg-Marquadt algorithm.
 
     This is an efficient nonlinear least-squares solver, however, it will still
-    be _very_ slow for large pulses (N > 256). The reason are that the
+    be *very* slow for large pulses (N > 256). The reason is that the
     (MN x N) Jacobian is evaluated using numerical differentiation.
 
     The recommendation is to use this method either on small problems or to

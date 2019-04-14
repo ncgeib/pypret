@@ -115,7 +115,8 @@ class COPRARetriever(StepRetriever):
         rs.current_max_gradient = 0.0
         # switch iteration
         if rs.steps_since_improvement == 5:
-            rs.mode = "global"
+            pass
+            #rs.mode = "global"
         # local iteration
         if rs.mode == "local":
             # running estimate for the trace
@@ -144,8 +145,8 @@ class COPRARetriever(StepRetriever):
             R = self._Rr(r)  # updates rs.mu!!!
             rs.approximate_error = False
             # gradient descent w.r.t. Smk
-            gradrmk = (-4 * rs.mu * ft.dt / (ft.dw * lib.twopi) *
-                       ft.backward(ft.forward(pnps.Smk) *
+            gradrmk = (-4 * ft.dt / (ft.dw * lib.twopi) *
+                       ft.backward(rs.mu * ft.forward(pnps.Smk) *
                                    (Tmn_meas - rs.mu * Tmn)))
             etar = options.alpha * r / lib.norm2(gradrmk)
             Smk2 = pnps.Smk - etar * gradrmk

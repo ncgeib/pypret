@@ -1,4 +1,4 @@
-""" This module implements a simple mesh-data handler.
+""" This module implements an object for dealing with two-dimensional data.
 """
 import numpy as np
 from scipy.interpolate import RegularGridInterpolator
@@ -56,10 +56,13 @@ class MeshData(io.IO):
         return MeshData(self.data, *self.axes, labels=self.labels,
                         units=self.units)
 
-    def marginals(self, axis=None):
+    def marginals(self, normalize=False, axes=None):
         """ Calculates the marginals of the data.
+
+        axes specifies the axes of the marginals, e.g., the axes on which the
+        sum is projected.
         """
-        return lib.marginals(self.data)
+        return lib.marginals(self.data, normalize=normalize, axes=axes)
 
     def normalize(self):
         """ Normalizes the maximum of the data to 1.

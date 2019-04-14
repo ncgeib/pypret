@@ -20,12 +20,6 @@ def benchmark_retrieval(pulse, scheme, algorithm, additive_noise=0.0,
     If you want to benchmark other pulses/configurations you can use the
     procedure below as a starting point.
     """
-    # Create a simulation grid
-    ft = FourierTransform(256, dt=5.0e-15)
-    # instantiate a pulse with central frequency 800 nm
-    pulse = Pulse(ft, 800e-9)
-    # create a random, localized pulse with time-bandwidth product 2
-    random_pulse(pulse, 2.0)
     # instantiate the result object
     res = SimpleNamespace()
     res.pulse = pulse.copy()
@@ -118,12 +112,12 @@ class RetrievalResultPlot:
 
         # Plot in time domain
         pulse.spectrum = rr.pulse_original  # the test pulse
-        li011, li012 = plot_complex(pulse.t, pulse.field, ax1, ax12, yaxis=yaxis,
+        li011, li012, samp, spha = plot_complex(pulse.t, pulse.field, ax1, ax12, yaxis=yaxis,
                           phase_blanking=phase_blanking, limit=limit,
                           phase_blanking_threshold=phase_blanking_threshold,
                           amplitude_line="k-", phase_line="k--")
         pulse.spectrum = rr.pulse_retrieved  # the retrieved pulse
-        li11, li12 = plot_complex(pulse.t, pulse.field, ax1, ax12, yaxis=yaxis,
+        li11, li12, samp, spha = plot_complex(pulse.t, pulse.field, ax1, ax12, yaxis=yaxis,
                           phase_blanking=phase_blanking, limit=limit,
                           phase_blanking_threshold=phase_blanking_threshold)
         li11.set_linewidth(3.0)
@@ -152,11 +146,11 @@ class RetrievalResultPlot:
             unit = " rad Hz"
             label = "frequency"
         # Plot in spectral domain
-        li021, li022 = plot_complex(x, rr.pulse_original, ax2, ax22, yaxis=yaxis,
+        li021, li022, samp, spha = plot_complex(x, rr.pulse_original, ax2, ax22, yaxis=yaxis,
                           phase_blanking=phase_blanking, limit=limit,
                           phase_blanking_threshold=phase_blanking_threshold,
                           amplitude_line="k-", phase_line="k--")
-        li21, li22 = plot_complex(x, rr.pulse_retrieved, ax2, ax22, yaxis=yaxis,
+        li21, li22, samp, spha = plot_complex(x, rr.pulse_retrieved, ax2, ax22, yaxis=yaxis,
                           phase_blanking=phase_blanking, limit=limit,
                           phase_blanking_threshold=phase_blanking_threshold)
         li21.set_linewidth(3.0)

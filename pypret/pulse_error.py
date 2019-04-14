@@ -11,8 +11,8 @@ def pulse_error(E, E0, ft, dot_ambiguity=False,
     taking into account the retrieval ambiguities.
 
     One step in `optimal_rms_error` (the determination of the initial bracket)
-    could probably be more efficient, see [Dorrer2002]_. We use the
-    less elegant but maybe more straightforward way of simply sampling the
+    could probably be more efficient, see [Dorrer2002]_). We use the less
+    elegant but maybe more straightforward way of simply sampling the
     range for a bracket that encloses a minimum.
 
     Parameters
@@ -49,17 +49,6 @@ def pulse_error(E, E0, ft, dot_ambiguity=False,
     return best_error, best_match
 
 
-def best_scale(E, E0):
-    """ Scales rho so that::
-        
-        sum (rho * |E| - |E0|)^2
-        
-    is minimal.
-    """
-    Eabs, E0abs = np.abs(E), np.abs(E0)
-    return np.sum(Eabs * E0abs) / np.sum(Eabs * Eabs)
-
-
 def best_constant_phase(E, E0):
     """ Finds ``c`` with ``|c| = 1`` so that ``sum(abs2(c * y1 - y2))`` is
     minimal.
@@ -80,15 +69,15 @@ def optimal_rms_error(w, E, E0):
     and linear phase of one of them.
 
     Formally it calculates the minimal error::
-    
+
         R = sqrt(|rho * exp(i*(x*a + b)) * y1 - y2|^2 / |y2|^2)
-    
+
     with respect to rho, a and b. If additionally ``conjugation = True`` then
     the error for conjugate(y1) is calculated and the best transformation of y1
     is also returned.
     """
     # E is rescaled so that the amplitudes match in the least-squares sense
-    E = E * best_scale(E, E0)
+    E = E * lib.best_scale(E, E0)
 
     # find optimal linear and constant phase
     # determine the frequency spacing

@@ -97,7 +97,7 @@ Long story short: here we are going to stick with multiplying the correct
 phase factors. The code tries to follow the notation used above.
 
 Good, more comprehensive expositions of the issues above can be found in
-[Briggs1995]_ and [Hansen2014]_. For the reason why it the first-order
+[Briggs1995]_ and [Hansen2014]_. For the reason why the first-order
 approximation to the Riemann integral suffices, see [Trefethen2014]_.
 """
 import numpy as np
@@ -199,6 +199,30 @@ class FourierTransform(io.IO):
         """ Calculates the backward (inverse) Fourier transform of ``x``.
         """
         return self.dw * self._s.conj() * fft.fft(self._r.conj() * x)
+
+    def forward_at(self, x, w):
+        """ Calculates the forward Fourier transform of `x` at the
+        frequencies `w`.
+
+        This function calculates the Riemann sum directly and has quadratic
+        runtime. However, it can evaluate the integral at arbitrary
+        frequencies, even if they are non-equidistantly spaced. Effectively,
+        it performs a trigonometric interpolation.
+        """
+        Dnk = self.dt / twopi * np.exp(1.0j * w[:, None] * self.t[None, :])
+        return Dnk @ x
+
+    def backward_at(self, x, t):
+        """ Calculates the backward Fourier transform of `x` at the
+        times `t`.
+
+        This function calculates the Riemann sum directly and has quadratic
+        runtime. However, it can evaluate the integral at arbitrary
+        times, even if they are non-equidistantly spaced. Effectively,
+        it performs a trigonometric interpolation.
+        """
+        Dkn = self.dw * np.exp(1.0j * t[:, None] * self.w[None, :])
+        return Dkn @ x
 
 
 class Gaussian:

@@ -123,6 +123,5 @@ def random_gaussian(pulse, fwhm, phase_max=0.1 * np.pi):
     # convert intensity fwhm to field std-dev.
     sigma = 0.5 * fwhm / np.sqrt(np.log(2.0))
     phase = np.exp(1.0j * np.random.uniform(-phase_max, phase_max, pulse.N))
-    pulse.field = lib.gaussian(pulse.t, sigma=sigma) * phase    
+    pulse.field = lib.gaussian(pulse.t, sigma=sigma) * phase
     return True
-
