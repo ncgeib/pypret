@@ -100,12 +100,12 @@ class Pulse(io.IO):
     def update_field(self):
         """ Manually updates the field from the (modified) spectrum.
         """
-        self._field[:] = self.ft.backward(self._spectrum)
+        self.ft.backward(self._spectrum, out=self._field)
 
     def update_spectrum(self):
         """ Manually updates the spectrum from the (modified) field.
         """
-        self._spectrum[:] = self.ft.forward(self._field)
+        self.ft.forward(self._field, out=self._spectrum)
 
     @property
     def intensity(self):

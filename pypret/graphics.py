@@ -56,16 +56,15 @@ def plot_complex(x, y, ax, ax2, yaxis='intensity', limit=False,
     phase = lib.phase(y)
     # center phase by weighted mean
     phase -= lib.mean(phase, amp * amp)
-    if limit:
-        xlim = lib.limit(x, amp)
-        ax.set_xlim(xlim)
-        f = (x >= xlim[0]) & (x <= xlim[1])
-        ax2.set_ylim(lib.limit(phase[f], padding=0.05))
-
     if phase_blanking:
         x2, phase2 = lib.mask_phase(x, amp, phase, phase_blanking_threshold)
     else:
         x2, phase2 = x, phase
+    if limit:
+        xlim = lib.limit(x, amp)
+        ax.set_xlim(xlim)
+        f = (x2 >= xlim[0]) & (x2 <= xlim[1])
+        ax2.set_ylim(lib.limit(phase2[f], padding=0.05))
 
     li1, = ax.plot(x, amp, amplitude_line)
     li2, = ax2.plot(x2, phase2, phase_line)

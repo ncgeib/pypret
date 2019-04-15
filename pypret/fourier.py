@@ -105,16 +105,17 @@ import numpy as np
 import scipy.fftpack as fft
 from . import io
 from .lib import twopi, sqrt2pi
+_fft_backend = 'scipy'
+try:
+    import pyfftw
+    _fft_backend = 'pyfftw'
+except ImportError:
+    pass
 
 
-class FourierTransform(io.IO):
+class FourierTransformBase(io.IO):
     """ This class implements the Fourier transform on linear grids.
 
-    Please note again that there are obvious accuracy and performance issues
-    with this implementation. For starters, it instantiates at least one new
-    array whenever the FT is computed. Additionally, the way the phase factors
-    are calculated can lead to rounding errors. Also one should use a faster
-    FFT like FFTW for more performance.
     This simple implementation is mainly for educational use.
 
     Attributes
@@ -133,8 +134,6 @@ class FourierTransform(io.IO):
         The temporal grid
     w : 1d-array
         The frequency grid (angular frequency)
-
-
     """
     _io_store = ['N', 'dt', 'dw', 't0', 'w0']
 
@@ -187,18 +186,13 @@ class FourierTransform(io.IO):
         self.t = self.t0 + k * self.dt
         self.w = self.w0 + n * self.dw
         # pre-calculate the phase factors
-        self._r = np.exp(1.0j * n * self.t0 * self.dw)
-        self._s = np.exp(1.0j * self.t * self.w0)
-
-    def forward(self, x):
-        """ Calculates the (forward) Fourier transform of ``x``.
-        """
-        return self.dt * self.N * self._r * fft.ifft(self._s * x) / twopi
-
-    def backward(self, x):
-        """ Calculates the backward (inverse) Fourier transform of ``x``.
-        """
-        return self.dw * self._s.conj() * fft.fft(self._r.conj() * x)
+        # TODO: possibly inaccurate for large t0, w0
+        self._fr = self.dt * self.N / twopi * np.exp(1.0j * n * self.t0 *
+                                                     self.dw)
+        self._fs = np.exp(1.0j * self.t * self.w0)
+        # complex conjugate of the above
+        self._br = np.exp(-1.0j * n * self.t0 * self.dw)
+        self._bs = self.dw * np.exp(-1.0j * self.t * self.w0)
 
     def forward_at(self, x, w):
         """ Calculates the forward Fourier transform of `x` at the
@@ -223,6 +217,135 @@ class FourierTransform(io.IO):
         """
         Dkn = self.dw * np.exp(1.0j * t[:, None] * self.w[None, :])
         return Dkn @ x
+
+
+# =============================================================================
+# Fourier backend selection
+# =============================================================================
+if _fft_backend == "scipy":
+    class FourierTransform(FourierTransformBase):
+
+        def forward(self, x, out=None):
+            """ Calculates the (forward) Fourier transform of ``x``.
+
+            For n-dimensional arrays it operates on the last axis, which has
+            to match the size of `x`.
+
+            Parameters
+            ----------
+            x : ndarray
+                The array of which the Fourier transform will be calculated.
+            out : ndarray or None, optional
+                A location into which the result is stored. If not provided or
+                None, a freshly-allocated array is returned.
+            """
+            if out is None:
+                out = np.empty_like(x)
+            out[:] = self._fr * fft.ifft(self._fs * x)
+            return out
+
+        def backward(self, x, out=None):
+            """ Calculates the backward (inverse) Fourier transform of ``x``.
+
+            For n-dimensional arrays it operates on the last axis, which has
+            to match the size of `x`.
+
+            Parameters
+            ----------
+            x : ndarray
+                The array of which the Fourier transform will be calculated.
+            out : ndarray or None, optional
+                A location into which the result is stored. If not provided or
+                None, a freshly-allocated array is returned.
+            """
+            if out is None:
+                out = np.empty_like(x)
+            out[:] = self._bs * fft.fft(self._br * x)
+            return out
+
+elif _fft_backend == "pyfftw":
+    class FourierTransform(FourierTransformBase):
+
+        def _post_init(self):
+            super()._post_init()
+            # do not need the additional N factor
+            n = np.arange(self.N)
+            self._fr = self.dt / twopi * np.exp(1.0j * n * self.t0 * self.dw)
+            # create the aligned arrays
+            a = self._field = pyfftw.empty_aligned(self.N, dtype="complex128")
+            b = self._spectrum = pyfftw.empty_aligned(self.N,
+                                                      dtype="complex128")
+            # instantiate the FFTW objects
+            self._fft = pyfftw.FFTW(b, a, direction="FFTW_FORWARD")
+            self._ifft = pyfftw.FFTW(a, b, direction="FFTW_BACKWARD")
+
+        def forward(self, x, out=None):
+            """ Calculates the (forward) Fourier transform of ``x``.
+
+            For n-dimensional arrays it operates on the last axis, which has
+            to match the size of `x`.
+
+            Parameters
+            ----------
+            x : ndarray
+                The array of which the Fourier transform will be calculated.
+            out : ndarray or None, optional
+                A location into which the result is stored. If not provided or
+                None, a freshly-allocated array is returned.
+            """
+            if out is None:
+                out = np.empty_like(x)
+            f, s = self._field, self._spectrum
+            if x.ndim == 1:
+                # fast code path for single dimension
+                f[:] = x
+                f *= self._fs
+                self._ifft.execute()
+                s *= self._fr
+                out[:] = s
+            else:
+                # implicitly work along last axis and return copy
+                for idx in np.ndindex(x.shape[:-1]):
+                    f[:] = x[idx]
+                    f *= self._fs
+                    self._ifft.execute()
+                    s *= self._fr
+                    out[idx] = s
+            return out
+
+        def backward(self, x, out=None):
+            """ Calculates the backward (inverse) Fourier transform of ``x``.
+
+            For n-dimensional arrays it operates on the last axis, which has
+            to match the size of `x`.
+
+            Parameters
+            ----------
+            x : ndarray
+                The array of which the Fourier transform will be calculated.
+            out : ndarray or None, optional
+                A location into which the result is stored. If not provided or
+                None, a freshly-allocated array is returned.
+            """
+            if out is None:
+                out = np.empty_like(x)
+            f, s = self._field, self._spectrum
+            if x.ndim == 1:
+                # fast code path for single dimension
+                s[:] = x
+                s *= self._br
+                self._fft.execute()
+                f *= self._bs
+                out[:] = f
+            else:
+                # implicitly work along last axis and return copy
+                for idx in np.ndindex(x.shape[:-1]):
+                    s[:] = x[idx]
+                    s *= self._br
+                    self._fft.execute()
+                    f *= self._bs
+                    out[idx] = f
+            return out
 
 
 class Gaussian:

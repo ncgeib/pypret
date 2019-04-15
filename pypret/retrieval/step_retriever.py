@@ -219,7 +219,7 @@ class PCGPARetriever(StepRetriever):
             # use full svd (slow!)
             U, s, V = np.linalg.svd(Smk2)
             Ek = U[:, 0] * np.sqrt(s[0])  # select U
-        En = ft.forward(Ek)
+        ft.forward(Ek, out=En)
         return R, En
 
 
@@ -240,6 +240,7 @@ class GPARetriever(StepRetriever):
     for GPA, it is the default.
     """
     method = "gpa"
+    supported_schemes = ["shg-frog"]
 
     def __init__(self, pnps, step_size="exact", **kwargs):
         """ For a full documentation of the arguments see :class:`Retriever`.
@@ -270,7 +271,7 @@ class GPARetriever(StepRetriever):
 
         R = self.trace_error(En)  # updates rs.mu!!!
         # obtain intermediate results
-        delay, Amk, Ek, Smk = pnps.intermediate(self.parameter)
+        delay, Amk, Ek, Smk, Tmn = pnps.intermediate(self.parameter)
         Ek = Ek[0, :]  # the same for every parameter
         # project on measured intensity
         Smk2 = self._project(Tmn_meas / rs.mu, Smk)
@@ -300,7 +301,6 @@ class GPARetriever(StepRetriever):
                                       bracket=bracket,
                                       method="brent")
                 gamma = ret.x
-                print(ret.success, ret.nfev, gamma/gamma0)
             elif options.step_size == "inexact":
                 # perform a back-tracking line search until the Armijo
                 # condition is fulfilled.
@@ -313,9 +313,9 @@ class GPARetriever(StepRetriever):
                 while objective(gamma) - objective0 > -gamma * t:
                     gamma = gamma * tau
                 rs.old_gamma = gamma
-        Ek -= gamma * gradient
+        Ek = Ek - gamma * gradient
 
-        En = ft.forward(Ek)
+        ft.forward(Ek, out=En)
         return R, En
 
 
@@ -389,13 +389,13 @@ class PIERetriever(StepRetriever):
             p = self.parameter[m]
             Tmn[m, :] = pnps.calculate(En, p)
             # get intermediate results from private attribute
-            _1, Amk, Ek, Smk = pnps._tmp[p]
+            delay, Amk, Ek, Smk, _ = pnps._tmp[p]
             # project
             Smk2 = self._project(Tmn_meas[m, :] / rs.mu, Smk)
             # perform update
             Ek += beta * Amk.conj() * (Smk2 - Smk) / lib.abs2(Ek).max()
             # update the spectrum
-            En = ft.forward(Ek)
+            ft.forward(Ek, out=En)
 
         # Tmn is only an approximation as En changed in the iteration!
         rs.approximate_error = True

@@ -4,6 +4,18 @@ These functions fulfill small numerical tasks used in several places in the
 package.
 """
 import numpy as np
+# make numba jit an optional dependence
+# see https://github.com/numba/numba/issues/3735
+try:
+    from numba import jit
+except ImportError:
+    def jit(pyfunc=None, **kwargs):
+        def wrap(func):
+            return func
+        if pyfunc is not None:
+            return wrap(pyfunc)
+        else:
+            return wrap
 
 # Constants for convenience (not more accurate)
 # two pi
@@ -29,7 +41,7 @@ def as_list(x):
     except TypeError:
         return list([x])
 
-
+@jit(nopython=True, cache=True)
 def abs2(x):
     """ Calculates the squared magnitude of a complex array.
     """
@@ -42,12 +54,14 @@ def rms(x, y):
     return np.sqrt(abs2(x - y).mean())
 
 
+@jit(nopython=True, cache=True)
 def norm2(x):
     """ Calculates the squared L2 or Euclidian norm of array ``x``.
     """
     return abs2(x).sum()
 
 
+@jit(nopython=True, cache=True)
 def norm(x):
     """ Calculates the L2 or Euclidian norm of array ``x``.
     """

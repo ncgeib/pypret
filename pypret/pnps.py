@@ -22,6 +22,7 @@ from . import io
 from .mesh_data import MeshData
 from .frequencies import convert
 from .pulse import Pulse
+from numba import jit
 
 # global dictionary that contains all PNPS classes
 _PNPS_CLASSES = {}
@@ -197,23 +198,32 @@ class CollinearPNPS(BasePNPS):
     """
     _supported_processes = ["shg", "thg", "sd"]
 
+    def _get_tmp(self, parameter):
+        if parameter in self._tmp:
+            return self._tmp[parameter]
+        N = self.ft.N
+        Hn = self.mask(parameter)
+        Ck = np.zeros(N, dtype=np.complex128)
+        Sk = np.zeros(N, dtype=np.complex128)
+        Tn = np.zeros(N, dtype=np.float64)
+        self._tmp[parameter] = Hn, Ck, Sk, Tn
+        return Hn, Ck, Sk, Tn
+
     def _calculate(self, spectrum, parameter):
         """ Calculates the nonlinear process spectrum for a single parameter.
 
         Follows the notation from our paper.
         """
         ft = self.ft
-        Hn = self.mask(parameter)
-        Ck = ft.backward(Hn * spectrum)
+        Hn, Ck, Sk, Tn = self._get_tmp(parameter)
+        ft.backward(Hn * spectrum, out=Ck)
         if self.process == "shg":
-            Sk = Ck * Ck
+            Sk[:] = Ck * Ck
         elif self.process == "thg":
-            Sk = Ck * Ck * Ck
+            Sk[:] = Ck * Ck * Ck
         elif self.process == "sd":
-            Sk = lib.abs2(Ck) * Ck
-        Tn = self.measure(Sk)
-        # store intermediate results for later use in gradient
-        self._tmp[parameter] = Hn, Ck, Sk
+            Sk[:] = lib.abs2(Ck) * Ck
+        Tn[:] = self.measure(Sk)
         return Tn, Sk
 
     def _gradient(self, Sk2, parameter):
@@ -221,7 +231,7 @@ class CollinearPNPS(BasePNPS):
         """
         ft = self.ft
         # retrieve the intermediate results
-        Hn, Ck, Sk = self._tmp[parameter]
+        Hn, Ck, Sk, Tn = self._get_tmp(parameter)
         # difference between the updated PNPS signal and the original one
         dSk = Sk2 - Sk
         # calculate the gradients as described in the supplement
@@ -353,22 +363,32 @@ class FROG(NoncollinearPNPS):
         """
         super().__init__(pulse, process)
 
+    def _get_tmp(self, parameter):
+        if parameter in self._tmp:
+            return self._tmp[parameter]
+        delay = np.exp(1.0j * parameter * self.ft.w)
+        N = self.ft.N
+        Ak = np.zeros(N, dtype=np.complex128)
+        Ek = np.zeros(N, dtype=np.complex128)
+        Sk = np.zeros(N, dtype=np.complex128)
+        Tn = np.zeros(N, dtype=np.float64)
+        self._tmp[parameter] = delay, Ak, Ek, Sk, Tn
+        return delay, Ak, Ek, Sk, Tn
+
     def _calculate(self, spectrum, parameter):
         """ Calculates the nonlinear process spectrum for a single parameter.
 
         Follows the notation from our paper.
         """
         ft = self.ft
-        delay = np.exp(1.0j * parameter * ft.w)
-        Ak = ft.backward(delay * spectrum)
-        Ek = ft.backward(spectrum)
+        delay, Ak, Ek, Sk, Tn = self._get_tmp(parameter)
+        ft.backward(delay * spectrum, out=Ak)
+        ft.backward(spectrum, out=Ek)
         if self.process == "shg":
-            Sk = Ak * Ek
+            Sk[:] = Ak * Ek
         elif self.process == "pg":
-            Sk = lib.abs2(Ak) * Ek
-        Tn = self.measure(Sk)
-        # store intermediate results for later use in gradient
-        self._tmp[parameter] = delay, Ak, Ek, Sk
+            Sk[:] = lib.abs2(Ak) * Ek
+        Tn[:] = self.measure(Sk)
         return Tn, Sk
 
     def _gradient(self, Sk2, parameter):
@@ -376,7 +396,7 @@ class FROG(NoncollinearPNPS):
         """
         ft = self.ft
         # retrieve the intermediate results
-        delay, Ak, Ek, Sk = self._tmp[parameter]
+        delay, Ak, Ek, Sk, Tn = self._tmp[parameter]
         # difference between original and updated PNPS signal
         dSk = Sk2 - Sk
         # calculate the gradients as described in the supplement
@@ -419,22 +439,32 @@ class TDP(NoncollinearPNPS):
         """
         super().__init__(pulse, process, center=center, width=width)
 
+    def _get_tmp(self, parameter):
+        if parameter in self._tmp:
+            return self._tmp[parameter]
+        # convert intensity fwhm to amplitude std deviation
+        sigma = 0.5 * self.width / np.sqrt(np.log(2))
+        delay = (np.exp(1.0j * parameter * self.ft.w) *
+                 lib.gaussian(self.wl, x0=self.center, sigma=sigma))
+        N = self.ft.N
+        Ak = np.zeros(N, dtype=np.complex128)
+        Ek = np.zeros(N, dtype=np.complex128)
+        Sk = np.zeros(N, dtype=np.complex128)
+        Tn = np.zeros(N, dtype=np.float64)
+        self._tmp[parameter] = delay, Ak, Ek, Sk, Tn
+        return delay, Ak, Ek, Sk, Tn
+
     def _calculate(self, spectrum, parameter):
         """ Calculates the nonlinear process spectrum for a single parameter.
 
         Follows the notation from our paper.
         """
         ft = self.ft
-        # convert intensity fwhm to amplitude std deviation
-        sigma = 0.5 * self.width / np.sqrt(np.log(2))
-        delay = (np.exp(1.0j * parameter * ft.w) *
-                 lib.gaussian(self.wl, x0=self.center, sigma=sigma))
-        Ak = ft.backward(delay * spectrum)
-        Ek = ft.backward(spectrum)
-        Sk = Ak * Ek
-        Tn = self.measure(Sk)
-        # store intermediate results for later use in gradient
-        self._tmp[parameter] = delay, Ak, Ek, Sk
+        delay, Ak, Ek, Sk, Tn = self._get_tmp(parameter)
+        ft.backward(delay * spectrum, out=Ak)
+        ft.backward(spectrum, out=Ek)
+        Sk[:] = Ak * Ek
+        Tn[:] = self.measure(Sk)
         return Tn, Sk
 
     def _gradient(self, Sk2, parameter):
@@ -442,7 +472,7 @@ class TDP(NoncollinearPNPS):
         """
         ft = self.ft
         # retrieve the intermediate results
-        delay, Ak, Ek, Sk = self._tmp[parameter]
+        delay, Ak, Ek, Sk, Tn = self._tmp[parameter]
         # difference between original and updated PNPS signal
         dSk = Sk2 - Sk
         # calculate the gradients as described in the supplement
