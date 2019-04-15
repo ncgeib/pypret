@@ -8,6 +8,7 @@ import numpy as np
 from . import io
 from . import lib
 from .frequencies import convert
+from scipy.optimize import minimize_scalar, root_scalar
 
 
 class Pulse(io.IO):
@@ -166,10 +167,44 @@ class Pulse(io.IO):
         return (lib.standard_deviation(self.t, self.intensity) *
                 lib.standard_deviation(self.w, self.spectral_intensity))
 
-    @property
-    def fwhm(self):
-        """ The FWHM of the temporal intensity profile.
+    def fwhm(self, dt=None):
+        """ Calculates the full width at half maximum (FWHM) of the temporal
+        intensity profile.
 
-        Only read access.
+        Parameters
+        ----------
+        dt : float or None, optional
+            Specifies the required accuracy of the calculation. If `None` (the
+            default) it is only as good as the spacing of the underlying
+            simulation grid - which can be quite coarse compared to the FWHM.
+            If smaller it is calculated based on trigonometric interpolation.
+
         """
-        return lib.fwhm(self.t, self.intensity)
+        t, intensity = self.t, self.intensity
+        if dt is None or dt == self.dt:
+            return lib.fwhm(t, intensity)
+
+        # exact calculation
+        def objective(tau):
+            return lib.abs2(self.field_at(np.array([tau]))[0])
+
+        # determine the maximum accurately
+        idx = np.argmax(intensity)
+        res = minimize_scalar(lambda x: -objective(x),
+                              (t[idx] - self.dt, t[idx]),
+                              tol=dt / 100.0, method="brent")
+        y0 = -res.fun
+        # determine the right and left sided intersection points
+        idx1, idx2 = lib.arglimit(intensity, threshold=0.5 * y0,
+                                  padding=0.0, normalize=False)
+        # left side
+        res = root_scalar(lambda x: objective(x) - 0.5 * y0,
+                          bracket=(t[idx1] - self.dt, t[idx1]),
+                          xtol=dt, method="brentq")
+        xl = res.root
+        # right side
+        res = root_scalar(lambda x: objective(x) - 0.5 * y0,
+                          bracket=(t[idx2], t[idx2] + self.dt),
+                          xtol=dt, method="brentq")
+        xr = res.root
+        return xr - xl

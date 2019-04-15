@@ -36,13 +36,13 @@ for small but useful calculations::
     # generate pulse with Gaussian spectrum and field standard deviation
     # of 20 nm
     pulse.spectrum = pypret.lib.gaussian(pulse.wl, x0=800e-9, sigma=20e-9)
-    # print FWHM of the temporal intensity envelope
-    print(pulse.fwhm)
+    # print the accurate FWHM of the temporal intensity envelope
+    print(pulse.fwhm(dt=pulse.dt/100))
     # propagate it through 1cm of BK7 (remove first ord)
     phase = np.exp(1.0j * pypret.material.BK7.k(pulse.wl) * 0.01)
     pulse.spectrum = pulse.spectrum * phase
     # print the temporal FWHM again
-    print(pulse.fwhm)
+    print(pulse.fwhm(dt=pulse.dt/100))
     # finally plot the pulse
     pypret.graphics.PulsePlot(pulse)
 

@@ -171,11 +171,12 @@ def best_scale(E, E0):
     return np.sum(Eabs * E0abs) / np.sum(Eabs * Eabs)
 
 
-def arglimit(y, threshold=1e-3, padding=0.0):
+def arglimit(y, threshold=1e-3, padding=0.0, normalize=True):
     """ Returns the first and last index where `y >= threshold * max(abs(y))`.
     """
     t = np.abs(y)
-    t /= np.max(t)
+    if normalize:
+        t /= np.max(t)
 
     idx1 = find(t, lambda x: x >= threshold)
     if idx1 == -1:
