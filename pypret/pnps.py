@@ -22,7 +22,6 @@ from . import io
 from .mesh_data import MeshData
 from .frequencies import convert
 from .pulse import Pulse
-from numba import jit
 
 # global dictionary that contains all PNPS classes
 _PNPS_CLASSES = {}
