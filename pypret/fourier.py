@@ -215,7 +215,7 @@ class FourierTransformBase(io.IO):
         times, even if they are non-equidistantly spaced. Effectively,
         it performs a trigonometric interpolation.
         """
-        Dkn = self.dw * np.exp(1.0j * t[:, None] * self.w[None, :])
+        Dkn = self.dw * np.exp(-1.0j * t[:, None] * self.w[None, :])
         return Dkn @ x
 
 
