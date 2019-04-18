@@ -115,8 +115,7 @@ class COPRARetriever(StepRetriever):
         rs.current_max_gradient = 0.0
         # switch iteration
         if rs.steps_since_improvement == 5:
-            pass
-            #rs.mode = "global"
+            rs.mode = "global"
         # local iteration
         if rs.mode == "local":
             # running estimate for the trace
