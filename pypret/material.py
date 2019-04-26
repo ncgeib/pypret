@@ -45,8 +45,8 @@ class BaseMaterial(io.IO):
         self._range = np.array(freq_range)
         self._scaling = scaling
         self.check = check_bounds
-        self.name = ""
-        self.long_name = ""
+        self.name = name
+        self.long_name = long_name
         
     def _check(self, x):
         if not self.check:
