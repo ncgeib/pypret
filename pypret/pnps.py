@@ -185,8 +185,8 @@ class BasePNPS(io.IO, metaclass=MetaIOPNPS):
         """ Returns the last calculated trace as a MeshData object.
         """
         return MeshData(self.Tmn, self.parameter, self.process_w,
-                        labels=["frequency", self.parameter_name],
-                        units=["Hz", self.parameter_unit])
+                        labels=[self.parameter_name, "frequency"],
+                        units=[self.parameter_unit, "Hz"])
 
 
 # =============================================================================
