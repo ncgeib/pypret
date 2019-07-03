@@ -39,7 +39,7 @@ the grid spacings::
 This is what enables us to use the DFT/FFT! Now we look at the definition of
 the FFT in NumPy::
 
-     fft[x_m] -> X_k =     ∑_k exp(-2pi i m k / N)
+     fft[x_m] -> X_k =     ∑_m exp(-2pi i m k / N)
     ifft[X_k] -> x_m = 1/N ∑_k exp(+2pi i k m / N)
 
 which gives the final expressions::
@@ -240,7 +240,7 @@ if _fft_backend == "scipy":
                 None, a freshly-allocated array is returned.
             """
             if out is None:
-                out = np.empty_like(x)
+                out = np.empty(x.shape, dtype=np.complex128)
             out[:] = self._fr * fft.ifft(self._fs * x)
             return out
 
@@ -259,7 +259,7 @@ if _fft_backend == "scipy":
                 None, a freshly-allocated array is returned.
             """
             if out is None:
-                out = np.empty_like(x)
+                out = np.empty(x.shape, dtype=np.complex128)
             out[:] = self._bs * fft.fft(self._br * x)
             return out
 
