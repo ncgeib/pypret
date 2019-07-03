@@ -51,7 +51,7 @@ You can now instantiate a PNPS class with that pulse object::
     insertion = np.linspace(-0.025, 0.025, 128)  # insertion in m
     pnps = pypret.PNPS(pulse, "dscan", "shg", material=pypret.material.BK7)
     # calculate the measurement trace
-    pnps.calculate(pulse.spectrum, insertion)
+    pnps.calculate(pulse.spectrum, delay)
     original_spectrum = pulse.spectrum
     # and plot it
     pypret.MeshDataPlot(pnps.trace)

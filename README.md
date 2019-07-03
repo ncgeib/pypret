@@ -4,6 +4,9 @@ This project aims to provide numerical algorithms for ultrashort laser pulse mea
 
 ![Example output](scripts/result.png?raw=true "Result")
 
+## dispersion scan
+We decided to remove the implementation of dispersion scan from the publicly available code. If you want to use pypret for d-scan please contact us.
+
 ## Notes
 
 This code is a complete re-implentation of the (rather messy) code used in our research. It was created with the expressive purpose to be well-documented and educational. The notation in the code tries to match the notation in the paper and references it. I would strongly recommend reading the publication before diving into the code.
@@ -29,11 +32,11 @@ pypret.random_pulse(pulse, 2.0)
 # plot the pulse
 pypret.PulsePlot(pulse)
 
-# simulate a d-scan measurement
-insertion = np.linspace(-0.025, 0.025, 128)  # insertion in m
-pnps = pypret.PNPS(pulse, "dscan", "shg", material=pypret.material.BK7)
+# simulate a frog measurement
+delay = np.linspace(-500e-15, 500e-15, 128)  # delay in s
+pnps = pypret.PNPS(pulse, "frog", "shg")
 # calculate the measurement trace
-pnps.calculate(pulse.spectrum, insertion)
+pnps.calculate(pulse.spectrum, delay)
 original_spectrum = pulse.spectrum
 # and plot it
 pypret.MeshDataPlot(pnps.trace)
@@ -50,11 +53,11 @@ ret.result(original_spectrum)
 The text output should look similar to this:
 ```
 Retrieval report
-trace error                    R = 2.07853378314943602e-07
+trace error                    R = 1.26951777571186456e-11
 min. trace error               R0 = 0.00000000000000000e+00
-                          R - R0 = 2.07853378314943602e-07
+                          R - R0 = 1.26951777571186456e-11
 
-pulse error                    ε = 3.24609262599545714e-05
+pulse error                    ε = 1.52280811825410699e-07
 ```
 This shows that the retrieval converged to the input trace within almost the numerical accuracy of the underlying calculations. This is, of course, only possible if no noise was added to the input data. Occasionally, the algorithm will not converge - in which case you would have to run it again.
 

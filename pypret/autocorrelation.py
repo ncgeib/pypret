@@ -35,7 +35,7 @@ def autocorrelation(pulse, tau=None, background=False, fast=False):
 
     This expression is expanded in terms of the pulse envelope and then
     evaluated with help of the convolution theorem and the Fourier transform.
-    Specifically, it implements Eq. (9.7) on page 460 from [Diels]_.
+    Specifically, it implements Eq. (9.7) on page 460 from [Diels2006]_.
     '''
     ft = pulse.ft.forward
     ift = pulse.ft.backward
