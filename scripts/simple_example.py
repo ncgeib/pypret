@@ -49,4 +49,5 @@ md = pnps.trace
 md.autolimit(1)
 mdp = MeshDataPlot(md, show=False)
 mdp.ax.set_title("SHG-iFROG")
+
 mdp.show()

@@ -67,11 +67,11 @@ def benchmark_retrieval(pulse, scheme, algorithm, additive_noise=0.0,
     for i in range(repeat):
         if initial_guess == "random_gaussian":
             # create random Gaussian pulse
-            random_gaussian(pulse, 50e-15)
+            random_gaussian(pulse, 50e-15, 0.3 * np.pi)
         elif initial_guess == "random":
-            pulse.spectrum = (np.random.uniform(size=ft.N) *
+            pulse.spectrum = (np.random.uniform(size=pulse.N) *
                               np.exp(2.0j * np.pi *
-                                     np.random.uniform(size=ft.N)))
+                                     np.random.uniform(size=pulse.N)))
         elif initial_guess == "original":
             pulse.spectrum = res.original_spectrum
         else:
@@ -180,11 +180,11 @@ class RetrievalResultPlot:
             x, y = lib.edges(rr.pnps.process_w), lib.edges(rr.parameter)
             im = ax.pcolormesh(x, y, trace, cmap=cmap)
             fig.colorbar(im, ax=ax)
-            ax.set_xlabel(md.labels[0])
-            ax.set_ylabel(md.labels[1])
-            fx = EngFormatter(unit=md.units[0])
+            ax.set_xlabel(md.labels[1])
+            ax.set_ylabel(md.labels[0])
+            fx = EngFormatter(unit=md.units[1])
             ax.xaxis.set_major_formatter(fx)
-            fy = EngFormatter(unit=md.units[1])
+            fy = EngFormatter(unit=md.units[0])
             ax.yaxis.set_major_formatter(fy)
             ax.set_title(title)
 
@@ -197,7 +197,7 @@ class RetrievalResultPlot:
         if show:
             #gs.tight_layout(fig)
             gs1.update(left=0.05, right=0.95, top=0.9, bottom=0.1,
-                      hspace=0.25, wspace=0.3)
+                      hspace=0.25, wspace=0.5)
             gs2.update(left=0.1, right=0.95, top=0.9, bottom=0.1,
                       hspace=0.5, wspace=1.0)
             plt.show()
