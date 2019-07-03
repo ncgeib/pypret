@@ -83,8 +83,8 @@ class COPRARetriever(StepRetriever):
         """
         super().__init__(pnps, alpha=alpha, **kwargs)
 
-    def _retrieve_begin(self, measurement, initial_guess):
-        super()._retrieve_begin(measurement, initial_guess)
+    def _retrieve_begin(self, measurement, initial_guess, weights):
+        super()._retrieve_begin(measurement, initial_guess, weights)
         pnps = self.pnps
         rs = self._retrieval_state
         rs.mode = "local"  # COPRA starts with local mode
@@ -144,9 +144,10 @@ class COPRARetriever(StepRetriever):
             R = self._Rr(r)  # updates rs.mu!!!
             rs.approximate_error = False
             # gradient descent w.r.t. Smk
+            w2 = self._weights * self._weights
             gradrmk = (-4 * ft.dt / (ft.dw * lib.twopi) *
                        ft.backward(rs.mu * ft.forward(pnps.Smk) *
-                                   (Tmn_meas - rs.mu * Tmn)))
+                                   (Tmn_meas - rs.mu * Tmn) * w2))
             etar = options.alpha * r / lib.norm2(gradrmk)
             Smk2 = pnps.Smk - etar * gradrmk
             # gradient descent w.r.t. En
@@ -189,8 +190,8 @@ class PCGPARetriever(StepRetriever):
         """
         super().__init__(pnps, decomposition=decomposition, **kwargs)
 
-    def _retrieve_begin(self, measurement, initial_guess):
-        super()._retrieve_begin(measurement, initial_guess)
+    def _retrieve_begin(self, measurement, initial_guess, weights):
+        super()._retrieve_begin(measurement, initial_guess, weights)
         if np.any(self.parameter != measurement.axes[0]):
             raise ValueError("The delay has to be sampled exactly at the "
                              "temporal simulation grid.")

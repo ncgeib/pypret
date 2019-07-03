@@ -7,9 +7,10 @@ from . import io
 
 
 class MeshData(io.IO):
-    _io_store = ["data", "axes", "labels", "units"]
+    _io_store = ["data", "axes", "labels", "units", "uncertainty"]
 
-    def __init__(self, data,  *axes, labels=None, units=None):
+    def __init__(self, data,  *axes, uncertainty=None, labels=None,
+                 units=None):
         """ Creates a MeshData instance.
 
         Parameters
@@ -19,6 +20,10 @@ class MeshData(io.IO):
         *axes : ndarray
             Arrays specifying the coordinates of the data axes. Must be given
             in indexing order.
+        uncertainty : ndarray
+            An ndarray of the same size as `data` that contains some measure
+            of the uncertainty of the meshdata. E.g., it could be the standard
+            deviation of the data.
         labels : list of str, optional
             A list of strings labeling the axes. The last element labels the
             data itself, e.g. ``labels`` must have one more element than the
@@ -28,6 +33,10 @@ class MeshData(io.IO):
         """
         self.data = data.copy()
         self.axes = [np.array(a).copy() for a in axes]
+        if uncertainty is not None:
+            self.uncertainty = uncertainty.copy()
+        else:
+            self.uncertainty = None
         if self.ndim != len(axes):
             raise ValueError("Number of supplied axes is wrong!")
         if self.shape != tuple(ax.size for ax in self.axes):
@@ -53,8 +62,8 @@ class MeshData(io.IO):
 
     def copy(self):
         """ Creates a copy of the MeshData instance. """
-        return MeshData(self.data, *self.axes, labels=self.labels,
-                        units=self.units)
+        return MeshData(self.data, *self.axes, uncertainty=self.uncertainty,
+                        labels=self.labels, units=self.units)
 
     def marginals(self, normalize=False, axes=None):
         """ Calculates the marginals of the data.
@@ -67,7 +76,12 @@ class MeshData(io.IO):
     def normalize(self):
         """ Normalizes the maximum of the data to 1.
         """
-        self.data /= self.data.max()
+        self.scale(1.0 / self.data.max())
+
+    def scale(self, scale):
+        if self.uncertainty is not None:
+            self.uncertainty *= scale
+        self.data *= scale
 
     def autolimit(self, *axes, threshold=1e-2, padding=0.25):
         """ Limits the data based on the marginals.
@@ -75,10 +89,10 @@ class MeshData(io.IO):
         if len(axes) == 0:
             # default: operate on all axes
             axes = list(range(self.ndim))
-        marginals = lib.marginals(self.data, axes=axes)
+        marginals = lib.marginals(self.data)
         limits = []
         for i, j in enumerate(axes):
-            limit = lib.limit(self.axes[j], marginals[i],
+            limit = lib.limit(self.axes[j], marginals[j],
                               threshold=threshold, padding=padding)
             limits.append(limit)
         self.limit(*limits, axes=axes)
@@ -121,6 +135,8 @@ class MeshData(io.IO):
                 slices.append(slice(None))
             self.axes[j] = self.axes[j][slices[-1]]
         self.data = self.data[(*slices,)]
+        if self.uncertainty is not None:
+            self.uncertainty = self.uncertainty[(*slices,)]
 
     def interpolate(self, axis1=None, axis2=None, degree=2, sorted=False):
         """ Interpolates the data on a new two-dimensional, equidistantly
@@ -134,16 +150,24 @@ class MeshData(io.IO):
         # so sort them beforehand if necessary...
         orig_axes = self.axes
         data = self.data.copy()
+        if self.uncertainty is not None:
+            uncertainty = self.uncertainty.copy()
         if not sorted:
             for i in range(len(orig_axes)):
                 idx = np.argsort(orig_axes[i])
                 orig_axes[i] = orig_axes[i][idx]
                 data = np.take(data, idx, axis=i)
+                if self.uncertainty is not None:
+                    uncertainty = np.take(uncertainty, idx, axis=i)
         dataf = RegularGridInterpolator(tuple(orig_axes), data,
                                         bounds_error=False, fill_value=0.0)
         grid = lib.build_coords(*axes)
         self.data = dataf(grid)
         self.axes = axes
+        if self.uncertainty is not None:
+            dataf = RegularGridInterpolator(tuple(orig_axes), uncertainty,
+                                            bounds_error=False, fill_value=0.0)
+            self.uncertainty = dataf(grid)
 
     def flip(self, *axes):
         """ Flips the data on the specified axes.
@@ -156,3 +180,5 @@ class MeshData(io.IO):
             self.axes[ax] = self.axes[ax][::-1]
             slices[ax] = slice(None, None, -1)
         self.data = self.data[slices]
+        if self.uncertainty is not None:
+            self.uncertainty = self.uncertainty[slices]

@@ -44,8 +44,8 @@ class NLORetriever(BaseRetriever):
         # normalize the error vector to avoid ill-scaling
         return diff / np.sqrt(self.M * self.N) / self.Tmn_meas.max()
 
-    def _retrieve_begin(self, measurement, initial_guess):
-        super()._retrieve_begin(measurement, initial_guess)
+    def _retrieve_begin(self, measurement, initial_guess, weights):
+        super()._retrieve_begin(measurement, initial_guess, weights)
         rs = self._retrieval_state
         rs.nfev = 0
 

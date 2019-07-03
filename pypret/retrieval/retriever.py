@@ -68,7 +68,8 @@ class BaseRetriever(io.IO, metaclass=MetaIORetriever):
                              (self.method, pnps.scheme, self.supported_schemes)
                              )
 
-    def retrieve(self, measurement, initial_guess, **kwargs):
+    def retrieve(self, measurement, initial_guess, weights=None,
+                 **kwargs):
         """ Retrieve pulse from ``measurement`` starting at ``initial_guess``.
 
         Parameters
@@ -83,6 +84,11 @@ class BaseRetriever(io.IO, metaclass=MetaIORetriever):
         initial_guess : 1d-array
             The spectrum of the pulse that is used as initial guess in the
             iterative retrieval.
+        weights : 1d-array
+            Weights that are attributed to the measurement for retrieval.
+            In the case of (assumed) Gaussian uncertainties with standard
+            deviation sigma they should correspond to 1/sigma.
+            Not all algorithms support using the weights.
         kwargs : dict
             Can override retrieval options specified in :func:`__init__`.
 
@@ -94,11 +100,11 @@ class BaseRetriever(io.IO, metaclass=MetaIORetriever):
         self.options.__dict__.update(**kwargs)
         if not isinstance(measurement, MeshData):
             raise ValueError("measurement has to be a MeshData instance!")
-        self._retrieve_begin(measurement, initial_guess)
+        self._retrieve_begin(measurement, initial_guess, weights)
         self._retrieve()
         self._retrieve_end()
 
-    def _retrieve_begin(self, measurement, initial_guess):
+    def _retrieve_begin(self, measurement, initial_guess, weights):
         pnps = self.pnps
         if not np.all(pnps.process_w == measurement.axes[1]):
             raise ValueError("Measurement has to lie on simulation grid!")
@@ -110,6 +116,11 @@ class BaseRetriever(io.IO, metaclass=MetaIORetriever):
         self.initial_guess = initial_guess
         # set the size
         self.M, self.N = self.Tmn_meas.shape
+        # Setup the weights
+        if weights is None:
+            self._weights = np.ones((self.M, self.N))
+        else:
+            self._weights = weights.copy()
         # Retrieval state
         rs = self._retrieval_state
         rs.approximate_error = False
@@ -188,13 +199,14 @@ class BaseRetriever(io.IO, metaclass=MetaIORetriever):
         rs = self._retrieval_state
         Tmn_meas = self.Tmn_meas
         # scaling factor
-        mu = np.sum(Tmn_meas * Tmn) / np.sum(Tmn * Tmn)
+        w2 = self._weights * self._weights
+        mu = np.sum(Tmn_meas * Tmn * w2) / np.sum(Tmn * Tmn * w2)
         # store intermediate results in current retrieval state
         if store:
             rs.mu = mu
             rs.Tmn = Tmn
             rs.Smk = self.pnps.Smk
-        return np.ravel(Tmn_meas - mu * Tmn)
+        return np.ravel((Tmn_meas - mu * Tmn) * self._weights)
 
     def _R(self, Tmn, store=True):
         """ Calculates the trace error from a simulated trace Tmn.
@@ -205,7 +217,8 @@ class BaseRetriever(io.IO, metaclass=MetaIORetriever):
     def _Rr(self, r):
         """ Calculates the trace error from the minimization objective r.
         """
-        return np.sqrt(r / (self.M * self.N)) / self.Tmn_meas.max()
+        return np.sqrt(r / (self.M * self.N *
+                            (self.Tmn_meas * self._weights).max()**2))
 
     def result(self, pulse_original=None, full=True):
         """ Analyzes the retrieval results in one retrieval instance
@@ -241,6 +254,8 @@ class BaseRetriever(io.IO, metaclass=MetaIORetriever):
         res.trace_error = self.trace_error(res.pulse_retrieved)
         res.trace_retrieved = rs.mu * rs.Tmn
         res.response_function = rs.mu
+        # the weights
+        res.weights = self._weights
 
         # this is set if the original spectrum is provided
         if res.pulse_original is not None:
@@ -308,16 +323,3 @@ def Retriever(pnps: BasePNPS, method: str = "copra", maxiter=300, maxfev=None,
         raise ValueError("Retriever '%s' is unknown!" % (method))
     return cls(pnps, maxiter=maxiter, maxfev=maxfev,
                logging=logging, verbose=verbose, **kwargs)
-
-
-
-
-
-
-
-
-
-
-
-
-
