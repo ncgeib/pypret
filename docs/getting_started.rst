@@ -63,7 +63,7 @@ Finally, you can use pypret for pulse retrieval by instantiating a Retriever
 object::
 
     # do the retrieval
-    ret = pypret.Retriever(pnps, "copra", verbose=True, max_iterations=300)
+    ret = pypret.Retriever(pnps, "copra", verbose=True, maxiter=300)
     # start with a Gaussian spectrum with random phase as initial guess
     pypret.random_gaussian(pulse, 50e-15, phase_max=0.0)
     # now retrieve from the synthetic trace simulated above
