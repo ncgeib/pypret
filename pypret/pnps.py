@@ -103,6 +103,8 @@ class BasePNPS(io.IO, metaclass=MetaIOPNPS):
             self.process_w = self.w0 + self.ft.w
         elif self.process == "pg":
             self.process_w = self.w0 + self.ft.w
+        elif self.process == "tg":
+            self.process_w = self.w0 + self.ft.w
         self.process_wl = convert(self.process_w, "om", "wl")
         # store intermediate results in a dictionary
         self._tmp = dict()
@@ -333,7 +335,7 @@ class FROG(NoncollinearPNPS):
     """ Implements frequency-resolved optical gating [Kane1993]_
     [Trebino2000]_.
     """
-    _supported_processes = ["shg", "pg"]
+    _supported_processes = ["shg", "pg", "tg"]
     method = "frog"
     parameter_name = "delay"
     parameter_unit = "s"
@@ -375,6 +377,8 @@ class FROG(NoncollinearPNPS):
             Sk[:] = Ak * Ek
         elif self.process == "pg":
             Sk[:] = lib.abs2(Ak) * Ek
+        elif self.process == "tg":
+            Sk[:] = Ak.conj() * (Ek * Ek)
         Tn[:] = self.measure(Sk)
         return Tn, Sk
 
@@ -394,6 +398,12 @@ class FROG(NoncollinearPNPS):
             gradnZ = (2 * delay.conj() *
                       ft.forward(Ak * np.real(dSk * Ek.conj())) +
                       ft.forward(dSk * lib.abs2(Ak)))
+        elif self.process == "tg":
+            gradnZ = (2 * delay.conj() *
+                      ft.forward(Ak * np.real(dSk * Ek.conj())) +
+                      ft.forward(dSk * lib.abs2(Ak)))            
+#            gradnZ = (delay.conj() * ft.forward(dSk.conj() * Ek * Ek) +
+#                      2 * ft.forward(dSk * Ek.conj() * Ak))
         # common scale for all gradients (note the minus)
         gradnZ *= -2.0 * lib.twopi * ft.dw / ft.dt
         return gradnZ

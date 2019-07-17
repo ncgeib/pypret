@@ -10,6 +10,7 @@ from benchmarking import benchmark_retrieval, RetrievalResultPlot
 scheme = ( # can be one of the following
         "shg-frog"
 #        "pg-frog"
+#        "tg-frog"
 #        "shg-tdp"
 #        "shg-dscan"
 #        "thg-dscan"
