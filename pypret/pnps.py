@@ -399,11 +399,8 @@ class FROG(NoncollinearPNPS):
                       ft.forward(Ak * np.real(dSk * Ek.conj())) +
                       ft.forward(dSk * lib.abs2(Ak)))
         elif self.process == "tg":
-            gradnZ = (2 * delay.conj() *
-                      ft.forward(Ak * np.real(dSk * Ek.conj())) +
-                      ft.forward(dSk * lib.abs2(Ak)))            
-#            gradnZ = (delay.conj() * ft.forward(dSk.conj() * Ek * Ek) +
-#                      2 * ft.forward(dSk * Ek.conj() * Ak))
+            gradnZ = (delay.conj() * ft.forward(dSk.conj() * Ek * Ek) +
+                      2 * ft.forward(dSk * Ek.conj() * Ak))
         # common scale for all gradients (note the minus)
         gradnZ *= -2.0 * lib.twopi * ft.dw / ft.dt
         return gradnZ
