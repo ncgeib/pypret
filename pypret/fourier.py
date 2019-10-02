@@ -294,7 +294,7 @@ elif _fft_backend == "pyfftw":
                 None, a freshly-allocated array is returned.
             """
             if out is None:
-                out = np.empty_like(x)
+                out = np.empty(x.shape, dtype=np.complex128)
             f, s = self._field, self._spectrum
             if x.ndim == 1:
                 # fast code path for single dimension
@@ -328,7 +328,7 @@ elif _fft_backend == "pyfftw":
                 None, a freshly-allocated array is returned.
             """
             if out is None:
-                out = np.empty_like(x)
+                out = np.empty(x.shape, dtype=np.complex128)
             f, s = self._field, self._spectrum
             if x.ndim == 1:
                 # fast code path for single dimension
