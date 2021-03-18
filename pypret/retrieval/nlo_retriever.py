@@ -19,7 +19,7 @@ class NLORetriever(BaseRetriever):
         R = self._Rr(r)
         # printing and logging
         if rs.nfev % 100 == 0 and self.verbose:
-            print(rs.nfev, R)
+            self.print(rs.nfev, R)
         if self.logging:
             log.trace_error.append(R)
         rs.nfev += 1
@@ -37,7 +37,7 @@ class NLORetriever(BaseRetriever):
         R = self._Rr(np.sum(diff * diff))
         # printing and logging
         if rs.nfev % 100 == 0 and self.verbose:
-            print(rs.nfev, R)
+            self.print(rs.nfev, R)
         if self.logging:
             log.trace_error.append(R)
         rs.nfev += 1

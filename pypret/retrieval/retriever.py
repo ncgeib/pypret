@@ -61,6 +61,21 @@ class BaseRetriever(io.IO, metaclass=MetaIORetriever):
         self.log = None
         rs = self._retrieval_state = SimpleNamespace()
         rs.running = False
+        if 'status_sig' in kwargs:
+            self.print = kwargs['status_sig'].emit
+        else:
+            self.print = print
+
+        if 'callback' in kwargs:
+            self.callback = kwargs['callback']
+        else:
+            self.callback = None
+
+        if 'step_command' in kwargs:
+            self.step_command = kwargs['step_command']
+        else:
+            self.step_command = None
+
         if (self.supported_schemes is not None and
                 pnps.scheme not in self.supported_schemes):
             raise ValueError("Retriever '%s' does not support scheme '%s'. "
@@ -139,12 +154,12 @@ class BaseRetriever(io.IO, metaclass=MetaIORetriever):
         else:
             self.log = None
         if self.verbose:
-            print("Started retriever '%s'" % self.method)
-            print("Options:")
-            print(self.options)
-            print("Initial trace error R = {:.10e}".format(res.trace_error))
-            print("Starting retrieval...")
-            print()
+            self.print("Started retriever '%s'" % self.method)
+            self.print("Options:")
+            self.print(str(self.options))
+            self.print("Initial trace error R = {:.10e}".format(res.trace_error))
+            self.print("Starting retrieval...")
+            self.print("")
 
     def _retrieve_end(self):
         rs = self._retrieval_state
