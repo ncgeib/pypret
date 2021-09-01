@@ -7,6 +7,7 @@ from ..mesh_data import MeshData
 from ..pulse_error import pulse_error
 from .. import lib
 from ..pnps import BasePNPS
+from math import isclose
 
 # global dictionary that contains all PNPS classes
 _RETRIEVER_CLASSES = {}
@@ -106,7 +107,7 @@ class BaseRetriever(io.IO, metaclass=MetaIORetriever):
 
     def _retrieve_begin(self, measurement, initial_guess, weights):
         pnps = self.pnps
-        if not np.all(pnps.process_w == measurement.axes[1]):
+        if not np.allclose(pnps.process_w, measurement.axes[1], rtol=1e-6):
             raise ValueError("Measurement has to lie on simulation grid!")
         # Store measurement
         self.measurement = measurement
