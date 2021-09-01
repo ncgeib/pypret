@@ -161,6 +161,8 @@ class MeshData(io.IO):
                     uncertainty = np.take(uncertainty, idx, axis=i)
         dataf = RegularGridInterpolator(tuple(orig_axes), data,
                                         bounds_error=False, fill_value=0.0)
+        # Resample the axes to be evenly spaced
+        axes = [np.linspace(axis[0],axis[-1],len(axis),endpoint=True) for axis in axes]
         grid = lib.build_coords(*axes)
         self.data = dataf(grid)
         self.axes = axes
