@@ -40,8 +40,10 @@ class StepRetriever(BaseRetriever):
             # accept the new spectrum
             spectrum[:] = new_spectrum
             if self.verbose:
+                if self.callback is not None:
+                    self.callback([rs.mu * rs.Tmn - self.Tmn_meas, self.parameter, self.pnps.process_w, new_spectrum])
                 if i == 0:
-                    print("iteration".ljust(10) + "trace error".ljust(20))
+                    self.print("iteration".ljust(10) + "trace error".ljust(20))
                 s = "{:d}".format(i + 1).ljust(10)
                 if rs.approximate_error:
                     s += "~"
@@ -50,14 +52,16 @@ class StepRetriever(BaseRetriever):
                 s += "{:.10e}".format(R)
                 if R == res.trace_error:
                     s += "*"
-                print(s)
+                self.print(s)
             if not rs.running:
                 break
+            if self.step_command is not None:
+                self.step_command()
         if self.verbose:
-            print()
-            print("~ approximate trace error")
-            print("* accepted as best trace error")
-            print()
+            self.print("")
+            self.print("~ approximate trace error")
+            self.print("* accepted as best trace error")
+            self.print("")
 
         # return the retrieved spectrum
         # for a more detailed analysis call self.result()
